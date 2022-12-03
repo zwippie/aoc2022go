@@ -3,24 +3,26 @@ package main
 import (
 	"aoc2022/day1"
 	"aoc2022/day2"
-	"fmt"
+	"aoc2022/day3"
+	"log"
 	"os"
 )
 
+var days = map[string]func(){
+	"1a": day1.PartA,
+	"1b": day1.PartB,
+	"2a": day2.PartA,
+	"2b": day2.PartB,
+	"3a": day3.PartA,
+	"3b": day3.PartB,
+}
+
 func main() {
 	day := os.Args[1]
-	fmt.Println("It's day", day)
 
-	switch day {
-	case "1a":
-		day1.PartA()
-	case "1b":
-		day1.PartB()
-	case "2a":
-		day2.PartA()
-	case "2b":
-		day2.PartB()
-	default:
-		fmt.Println(day, "not found")
+	if f, ok := days[day]; ok {
+		f()
+	} else {
+		log.Fatal(day, " not implemented")
 	}
 }
