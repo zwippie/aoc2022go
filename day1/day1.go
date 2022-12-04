@@ -1,6 +1,7 @@
 package day1
 
 import (
+	"aoc2022/collection"
 	"bufio"
 	"fmt"
 	"log"
@@ -9,25 +10,21 @@ import (
 	"strconv"
 )
 
+// 71124
 func PartA() {
 	calories := readFile("input/day1.txt")
 
 	sort.IntSlice(calories).Sort()
-	fmt.Println(calories[len(calories)-1])
-
-	// fmt.Println(collection.Collection(calories).Last())
-	// collection.Test()
+	fmt.Println(collection.Last(calories))
 }
 
+// 204639
 func PartB() {
 	calories := readFile("input/day1.txt")
 	sort.IntSlice(calories).Sort()
 
-	lastThree := calories[len(calories)-3:]
-	total := 0
-	for _, value := range lastThree {
-		total += value
-	}
+	lastThree := collection.LastN(calories, 3)
+	total := collection.Sum(lastThree)
 	fmt.Println(total)
 }
 
