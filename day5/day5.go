@@ -36,24 +36,19 @@ func PartB() {
 
 func doMove9000(stacks []stack.Stack[byte], move Move) []stack.Stack[byte] {
 	for i := 0; i < move.count; i++ {
-		value := stacks[move.from-1].Pop()
-		stacks[move.to-1].Push(value)
+		stacks[move.to].Push(stacks[move.from].Pop())
 	}
 	return stacks
 }
 
 func doMove9001(stacks []stack.Stack[byte], move Move) []stack.Stack[byte] {
 	temp := make(stack.Stack[byte], move.count)
-
 	for i := 0; i < move.count; i++ {
-		value := stacks[move.from-1].Pop()
-		temp.Push(value)
+		temp.Push(stacks[move.from].Pop())
 	}
 	for i := 0; i < move.count; i++ {
-		value := temp.Pop()
-		stacks[move.to-1].Push(value)
+		stacks[move.to].Push(temp.Pop())
 	}
-
 	return stacks
 }
 
@@ -96,7 +91,7 @@ func parseMove(line string) Move {
 	count, _ := strconv.Atoi(parts[1])
 	from, _ := strconv.Atoi(parts[3])
 	to, _ := strconv.Atoi(parts[5])
-	return Move{count, from, to}
+	return Move{count, from - 1, to - 1}
 }
 
 func parseStacks(lines []string, stackCount int) (stacks []stack.Stack[byte]) {

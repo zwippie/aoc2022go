@@ -18,6 +18,8 @@ func (s *Stack[T]) Push(v T) {
 // 	return s[len(s)-1], s[:len(s)-1]
 // }
 
+// Will fail on an empty stack because I can't
+// figure out the defalt return value for type T.
 func (s *Stack[T]) Pop() T {
 	index := len(*s) - 1
 	element := (*s)[index]
