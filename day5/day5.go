@@ -1,6 +1,7 @@
 package day5
 
 import (
+	"aoc2022/stack"
 	"bufio"
 	"fmt"
 	"log"
@@ -15,33 +16,14 @@ type Move struct {
 	to    int
 }
 
-type Stack []byte
-
-func (s *Stack) IsEmpty() bool {
-	return len(*s) == 0
-}
-
-func (s *Stack) Push(v byte) {
-	*s = append(*s, v)
-}
-
-func (s *Stack) Pop() (byte, bool) {
-	if s.IsEmpty() {
-		return 0, false
-	} else {
-		index := len(*s) - 1
-		element := (*s)[index]
-		*s = (*s)[:index]
-		return element, true
-	}
-}
+// type Stack stack.Stack[byte]
 
 func PartA() {
 	stacks, moves := readFile("input/day5.txt", 9)
 	for _, move := range moves {
 		stacks = doMove9000(stacks, move)
 	}
-	fmt.Println(getResult(stacks)) // WHTLRMZRC
+	printResult(stacks) // WHTLRMZRC
 }
 
 func PartB() {
@@ -49,41 +31,41 @@ func PartB() {
 	for _, move := range moves {
 		stacks = doMove9001(stacks, move)
 	}
-	fmt.Println(getResult(stacks)) // GMPMLWNMG
+	printResult(stacks) // GMPMLWNMG
 }
 
-func doMove9000(stacks []Stack, move Move) []Stack {
+func doMove9000(stacks []stack.Stack[byte], move Move) []stack.Stack[byte] {
 	for i := 0; i < move.count; i++ {
-		value, _ := stacks[move.from-1].Pop()
+		value := stacks[move.from-1].Pop()
 		stacks[move.to-1].Push(value)
 	}
 	return stacks
 }
 
-func doMove9001(stacks []Stack, move Move) []Stack {
-	temp := make(Stack, move.count)
+func doMove9001(stacks []stack.Stack[byte], move Move) []stack.Stack[byte] {
+	temp := make(stack.Stack[byte], move.count)
 
 	for i := 0; i < move.count; i++ {
-		value, _ := stacks[move.from-1].Pop()
+		value := stacks[move.from-1].Pop()
 		temp.Push(value)
 	}
 	for i := 0; i < move.count; i++ {
-		value, _ := temp.Pop()
+		value := temp.Pop()
 		stacks[move.to-1].Push(value)
 	}
 
 	return stacks
 }
 
-func getResult(stacks []Stack) string {
+func printResult(stacks []stack.Stack[byte]) {
 	result := []byte{}
-	for _, stack := range stacks {
-		result = append(result, stack[len(stack)-1])
+	for _, s := range stacks {
+		result = append(result, s.Pop())
 	}
-	return string(result)
+	fmt.Println(string(result))
 }
 
-func readFile(fileName string, stackCount int) (stacks []Stack, moves []Move) {
+func readFile(fileName string, stackCount int) (stacks []stack.Stack[byte], moves []Move) {
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
@@ -117,8 +99,8 @@ func parseMove(line string) Move {
 	return Move{count, from, to}
 }
 
-func parseStacks(lines []string, stackCount int) (stacks []Stack) {
-	stacks = make([]Stack, stackCount)
+func parseStacks(lines []string, stackCount int) (stacks []stack.Stack[byte]) {
+	stacks = make([]stack.Stack[byte], stackCount)
 	for i := len(lines) - 2; i >= 0; i-- { // reversed, skip last
 		for j := 0; j < stackCount; j++ {
 			crate := lines[i][4*j+1]
