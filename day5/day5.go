@@ -9,12 +9,31 @@ import (
 	"strings"
 )
 
-type Stack []byte
-
 type Move struct {
 	count int
 	from  int
 	to    int
+}
+
+type Stack []byte
+
+func (s *Stack) IsEmpty() bool {
+	return len(*s) == 0
+}
+
+func (s *Stack) Push(v byte) {
+	*s = append(*s, v)
+}
+
+func (s *Stack) Pop() (byte, bool) {
+	if s.IsEmpty() {
+		return 0, false
+	} else {
+		index := len(*s) - 1
+		element := (*s)[index]
+		*s = (*s)[:index]
+		return element, true
+	}
 }
 
 func PartA() {
@@ -22,7 +41,7 @@ func PartA() {
 	for _, move := range moves {
 		stacks = doMove9000(stacks, move)
 	}
-	fmt.Println(getResult(stacks))
+	fmt.Println(getResult(stacks)) // WHTLRMZRC
 }
 
 func PartB() {
@@ -30,22 +49,29 @@ func PartB() {
 	for _, move := range moves {
 		stacks = doMove9001(stacks, move)
 	}
-	fmt.Println(getResult(stacks))
+	fmt.Println(getResult(stacks)) // GMPMLWNMG
 }
 
 func doMove9000(stacks []Stack, move Move) []Stack {
 	for i := 0; i < move.count; i++ {
-		crate := stacks[move.from-1][len(stacks[move.from-1])-1]
-		stacks[move.to-1] = append(stacks[move.to-1], crate)
-		stacks[move.from-1] = stacks[move.from-1][:len(stacks[move.from-1])-1]
+		value, _ := stacks[move.from-1].Pop()
+		stacks[move.to-1].Push(value)
 	}
 	return stacks
 }
 
 func doMove9001(stacks []Stack, move Move) []Stack {
-	crates := stacks[move.from-1][len(stacks[move.from-1])-move.count:]
-	stacks[move.to-1] = append(stacks[move.to-1], crates...)
-	stacks[move.from-1] = stacks[move.from-1][:len(stacks[move.from-1])-move.count]
+	temp := make(Stack, move.count)
+
+	for i := 0; i < move.count; i++ {
+		value, _ := stacks[move.from-1].Pop()
+		temp.Push(value)
+	}
+	for i := 0; i < move.count; i++ {
+		value, _ := temp.Pop()
+		stacks[move.to-1].Push(value)
+	}
+
 	return stacks
 }
 
@@ -97,7 +123,7 @@ func parseStacks(lines []string, stackCount int) (stacks []Stack) {
 		for j := 0; j < stackCount; j++ {
 			crate := lines[i][4*j+1]
 			if crate != 32 {
-				stacks[j] = append(stacks[j], crate)
+				stacks[j].Push(crate)
 			}
 		}
 	}
