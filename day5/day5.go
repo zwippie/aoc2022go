@@ -98,8 +98,7 @@ func parseStacks(lines []string, stackCount int) (stacks []stack.Stack[byte]) {
 	stacks = make([]stack.Stack[byte], stackCount)
 	for i := len(lines) - 2; i >= 0; i-- { // reversed, skip last
 		for j := 0; j < stackCount; j++ {
-			crate := lines[i][4*j+1]
-			if crate != 32 {
+			if crate := lines[i][4*j+1]; crate != 32 {
 				stacks[j].Push(crate)
 			}
 		}
