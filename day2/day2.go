@@ -2,14 +2,15 @@ package day2
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 )
 
-func PartA() {
-	data := readFile("input/day2.txt")
+// 13446
+func PartA(input []byte) {
+	data := readFile(input)
 	totalScore := 0
 	for _, pair := range data {
 		elf := normalizeInput(pair[0])
@@ -19,8 +20,9 @@ func PartA() {
 	fmt.Println(totalScore)
 }
 
-func PartB() {
-	data := readFile("input/day2.txt")
+// 13509
+func PartB(input []byte) {
+	data := readFile(input)
 	totalScore := 0
 	for _, pair := range data {
 		elf := normalizeInput(pair[0])
@@ -51,15 +53,10 @@ func score(elf int, player int) int {
 	return 0
 }
 
-func readFile(fileName string) [][]string {
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
+func readFile(input []byte) [][]string {
+	reader := bytes.NewReader(input)
+	scanner := bufio.NewScanner(reader)
 	result := [][]string{}
-	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
 		var line = scanner.Text()

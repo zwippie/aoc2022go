@@ -7,11 +7,13 @@ import (
 	"aoc2022/day4"
 	"aoc2022/day5"
 	"aoc2022/day6"
+	"embed"
+	"fmt"
 	"log"
 	"os"
 )
 
-var days = map[string]func(){
+var days = map[string]func([]byte){
 	"1a": day1.PartA,
 	"1b": day1.PartB,
 	"2a": day2.PartA,
@@ -28,10 +30,27 @@ var days = map[string]func(){
 
 func main() {
 	day := os.Args[1]
+	part := os.Args[2]
+	inputSuffix := ""
+	if len(os.Args) > 3 {
+		inputSuffix = os.Args[3] // day3example.txt
+	}
 
-	if f, ok := days[day]; ok {
-		f()
+	if f, ok := days[day+part]; ok {
+		data := ReadInput(day, inputSuffix)
+		f(data)
 	} else {
 		log.Fatal(day, " not implemented")
 	}
+}
+
+//go:embed input/*
+var dataSets embed.FS
+
+func ReadInput(day string, suffix string) []byte {
+	data, err := dataSets.ReadFile(fmt.Sprintf("input/day%s%s.txt", day, suffix))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return data
 }

@@ -3,24 +3,24 @@ package day1
 import (
 	"aoc2022/collection"
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
-	"os"
 	"sort"
 	"strconv"
 )
 
 // 71124
-func PartA() {
-	calories := readFile("input/day1.txt")
+func PartA(input []byte) {
+	calories := readFile(input)
 
 	sort.IntSlice(calories).Sort()
 	fmt.Println(collection.Last(calories))
 }
 
 // 204639
-func PartB() {
-	calories := readFile("input/day1.txt")
+func PartB(input []byte) {
+	calories := readFile(input)
 	sort.IntSlice(calories).Sort()
 
 	lastThree := collection.LastN(calories, 3)
@@ -28,16 +28,11 @@ func PartB() {
 	fmt.Println(total)
 }
 
-func readFile(fileName string) []int {
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
+func readFile(input []byte) []int {
+	reader := bytes.NewReader(input)
+	scanner := bufio.NewScanner(reader)
 	result := []int{}
 	calories := 0
-	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
 		var line = scanner.Text()

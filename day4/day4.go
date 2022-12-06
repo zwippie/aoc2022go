@@ -2,17 +2,18 @@ package day4
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
 	"golang.org/x/exp/slices"
 )
 
-func PartA() {
-	data := readFile("input/day4.txt")
+// 532
+func PartA(input []byte) {
+	data := readFile(input)
 	result := 0
 
 	for _, pair := range data {
@@ -24,8 +25,9 @@ func PartA() {
 	fmt.Println(result)
 }
 
-func PartB() {
-	data := readFile("input/day4.txt")
+// 854
+func PartB(input []byte) {
+	data := readFile(input)
 	result := 0
 
 	for _, pair := range data {
@@ -57,15 +59,10 @@ func hasOverlap(first []int, second []int) bool {
 	return false
 }
 
-func readFile(fileName string) [][][]int {
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
+func readFile(input []byte) [][][]int {
+	reader := bytes.NewReader(input)
+	scanner := bufio.NewScanner(reader)
 	result := [][][]int{}
-	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
 		var line = strings.Split(scanner.Text(), ",")

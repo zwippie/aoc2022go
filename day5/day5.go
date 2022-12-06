@@ -3,9 +3,9 @@ package day5
 import (
 	"aoc2022/stack"
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -18,16 +18,16 @@ type Move struct {
 
 // type Stack stack.Stack[byte]
 
-func PartA() {
-	stacks, moves := readFile("input/day5.txt", 9)
+func PartA(input []byte) {
+	stacks, moves := readFile(input, 9)
 	for _, move := range moves {
 		stacks = doMove9000(stacks, move)
 	}
 	printResult(stacks) // WHTLRMZRC
 }
 
-func PartB() {
-	stacks, moves := readFile("input/day5.txt", 9)
+func PartB(input []byte) {
+	stacks, moves := readFile(input, 9)
 	for _, move := range moves {
 		stacks = doMove9001(stacks, move)
 	}
@@ -60,14 +60,9 @@ func printResult(stacks []stack.Stack[byte]) {
 	fmt.Println(string(result))
 }
 
-func readFile(fileName string, stackCount int) (stacks []stack.Stack[byte], moves []Move) {
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+func readFile(input []byte, stackCount int) (stacks []stack.Stack[byte], moves []Move) {
+	reader := bytes.NewReader(input)
+	scanner := bufio.NewScanner(reader)
 	temp := []string{}
 
 	for scanner.Scan() {

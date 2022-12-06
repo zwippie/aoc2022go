@@ -2,16 +2,17 @@ package day3
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 )
 
-func PartA() {
+// 7581
+func PartA(input []byte) {
 	totalScore := 0
 
-	for _, line := range readFile("input/day3.txt") {
+	for _, line := range readFile(input) {
 		runes := []rune(line)
 		halfway := len(runes) / 2
 		duplicate := findDuplicate(runes[:halfway], runes[halfway:])
@@ -21,8 +22,9 @@ func PartA() {
 	fmt.Println(totalScore)
 }
 
-func PartB() {
-	data := readFile("input/day3.txt")
+// 2525
+func PartB(input []byte) {
+	data := readFile(input)
 	totalScore := 0
 
 	for i := 0; i < len(data); i += 3 {
@@ -62,15 +64,10 @@ func findDuplicate(first []rune, second []rune) rune {
 	return 0
 }
 
-func readFile(fileName string) []string {
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
+func readFile(input []byte) []string {
+	reader := bytes.NewReader(input)
+	scanner := bufio.NewScanner(reader)
 	result := []string{}
-	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {
 		var line = scanner.Text()
