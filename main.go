@@ -7,8 +7,7 @@ import (
 	"aoc2022/day4"
 	"aoc2022/day5"
 	"aoc2022/day6"
-	"embed"
-	"fmt"
+	"aoc2022/myinput"
 	"log"
 	"os"
 )
@@ -37,20 +36,9 @@ func main() {
 	}
 
 	if f, ok := days[day+part]; ok {
-		data := ReadInput(day, inputSuffix)
+		data := myinput.ReadInput(day, inputSuffix)
 		f(data)
 	} else {
 		log.Fatal(day, " not implemented")
 	}
-}
-
-//go:embed input/*
-var dataSets embed.FS
-
-func ReadInput(day string, suffix string) []byte {
-	data, err := dataSets.ReadFile(fmt.Sprintf("input/day%s%s.txt", day, suffix))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return data
 }

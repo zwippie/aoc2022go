@@ -16,6 +16,7 @@ func PartA(input []byte) {
 
 	sort.IntSlice(calories).Sort()
 	fmt.Println(collection.Last(calories))
+	// return collection.Last(calories)
 }
 
 // 204639
