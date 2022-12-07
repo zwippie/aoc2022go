@@ -11,14 +11,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type File struct {
-	name string
-	size int
-}
-
 type Folder struct {
-	name    string
-	files   map[string]*File
 	folders map[string]*Folder
 	parent  *Folder
 	size    int
@@ -59,30 +52,24 @@ func PartB(input []byte) {
 }
 
 func (folder *Folder) folderSizes(folderSizes *[]int) {
-	size := 0
-	for _, file := range folder.files {
-		size += file.size
+	for _, subFolder := range folder.folders {
+		subFolder.folderSizes(folderSizes)
+		folder.size += subFolder.size
 	}
-	for _, folder := range folder.folders {
-		folder.folderSizes(folderSizes)
-		size += folder.size
-	}
-	folder.size = size
-	*folderSizes = append(*folderSizes, size)
+	*folderSizes = append(*folderSizes, folder.size)
 }
 
 func buildTree(input []byte) *Folder {
 	reader := bytes.NewReader(input)
 	scanner := bufio.NewScanner(reader)
 	root := &Folder{
-		name:    "/",
-		folders: make(map[string]*Folder),
-		files:   make(map[string]*File)}
+		folders: make(map[string]*Folder)}
 	cwd := root
 
 	for scanner.Scan() {
 		var line = scanner.Text()
 		parts := strings.Split(line, " ")
+
 		if parts[0] == "$" && parts[1] == "cd" {
 			if parts[2] == "/" {
 				// root folder, ignore
@@ -93,23 +80,16 @@ func buildTree(input []byte) *Folder {
 				// change cwd
 				cwd = cwd.folders[parts[2]]
 			}
-		} else if parts[0] == "$" && parts[1] == "ls" {
-			// ignore
 		} else if parts[0] == "dir" {
 			// add folder
 			newFolder := &Folder{
-				name:    parts[1],
 				parent:  cwd,
-				folders: make(map[string]*Folder),
-				files:   make(map[string]*File)}
+				folders: make(map[string]*Folder)}
 			cwd.folders[parts[1]] = newFolder
 		} else {
 			// add file
 			size, _ := strconv.Atoi(parts[0])
-			newFile := &File{
-				name: parts[1],
-				size: size}
-			cwd.files[parts[1]] = newFile
+			cwd.size += size
 		}
 	}
 
