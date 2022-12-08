@@ -42,7 +42,7 @@ func priority(char rune) int {
 }
 
 func findDuplicate3(first string, second string, third string) rune {
-	for _, char := range []rune(first) {
+	for _, char := range first {
 		if strings.ContainsRune(second, char) {
 			if strings.ContainsRune(third, char) {
 				return char
