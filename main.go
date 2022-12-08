@@ -10,11 +10,12 @@ import (
 	"aoc2022/day7"
 	"aoc2022/day8"
 	"aoc2022/myinput"
+	"fmt"
 	"log"
 	"os"
 )
 
-var days = map[string]func([]byte){
+var days = map[string]func([]byte) any{
 	"1a": day1.PartA,
 	"1b": day1.PartB,
 	"2a": day2.PartA,
@@ -43,7 +44,7 @@ func main() {
 
 	if f, ok := days[day+part]; ok {
 		data := myinput.ReadInput(day, inputSuffix)
-		f(data)
+		fmt.Println(f(data))
 	} else {
 		log.Fatal(day, " not implemented")
 	}

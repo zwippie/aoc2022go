@@ -1,17 +1,13 @@
 package day6
 
-import (
-	"fmt"
-)
-
 // 1909
-func PartA(input []byte) {
-	fmt.Println(findMarkerIdx(input, 4))
+func PartA(input []byte) any {
+	return findMarkerIdx(input, 4)
 }
 
 // 3380
-func PartB(input []byte) {
-	fmt.Println(findMarkerIdx(input, 14))
+func PartB(input []byte) any {
+	return findMarkerIdx(input, 14)
 }
 
 func findMarkerIdx(data []byte, markerSize int) int {

@@ -3,7 +3,6 @@ package day7
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -18,7 +17,7 @@ type Folder struct {
 }
 
 // 1611443
-func PartA(input []byte) {
+func PartA(input []byte) any {
 	tree := buildTree(input)
 	folderSizes := []int{}
 	tree.folderSizes(&folderSizes)
@@ -29,11 +28,11 @@ func PartA(input []byte) {
 			totalSize += size
 		}
 	}
-	fmt.Println(totalSize)
+	return totalSize
 }
 
 // 2086088
-func PartB(input []byte) {
+func PartB(input []byte) any {
 	tree := buildTree(input)
 	folderSizes := []int{}
 	tree.folderSizes(&folderSizes)
@@ -45,10 +44,10 @@ func PartB(input []byte) {
 
 	for _, size := range folderSizes {
 		if size >= spaceNeeded {
-			fmt.Println(size)
-			break
+			return size
 		}
 	}
+	return 0
 }
 
 func (folder *Folder) folderSizes(folderSizes *[]int) {

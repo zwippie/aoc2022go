@@ -4,7 +4,6 @@ import (
 	"aoc2022/stack"
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -18,20 +17,20 @@ type Move struct {
 
 // type Stack stack.Stack[byte]
 
-func PartA(input []byte) {
+func PartA(input []byte) any {
 	stacks, moves := readFile(input, 9)
 	for _, move := range moves {
 		stacks = doMove9000(stacks, move)
 	}
-	printResult(stacks) // WHTLRMZRC
+	return getResult(stacks) // WHTLRMZRC
 }
 
-func PartB(input []byte) {
+func PartB(input []byte) any {
 	stacks, moves := readFile(input, 9)
 	for _, move := range moves {
 		stacks = doMove9001(stacks, move)
 	}
-	printResult(stacks) // GMPMLWNMG
+	return getResult(stacks) // GMPMLWNMG
 }
 
 func doMove9000(stacks []stack.Stack[byte], move Move) []stack.Stack[byte] {
@@ -52,12 +51,12 @@ func doMove9001(stacks []stack.Stack[byte], move Move) []stack.Stack[byte] {
 	return stacks
 }
 
-func printResult(stacks []stack.Stack[byte]) {
+func getResult(stacks []stack.Stack[byte]) string {
 	result := []byte{}
 	for _, s := range stacks {
 		result = append(result, s.Pop())
 	}
-	fmt.Println(string(result))
+	return string(result)
 }
 
 func readFile(input []byte, stackCount int) (stacks []stack.Stack[byte], moves []Move) {

@@ -4,29 +4,27 @@ import (
 	"aoc2022/collection"
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"sort"
 	"strconv"
 )
 
 // 71124
-func PartA(input []byte) {
+func PartA(input []byte) any {
 	calories := readFile(input)
 
 	sort.IntSlice(calories).Sort()
-	fmt.Println(collection.Last(calories))
-	// return collection.Last(calories)
+	return collection.Last(calories)
 }
 
 // 204639
-func PartB(input []byte) {
+func PartB(input []byte) any {
 	calories := readFile(input)
 	sort.IntSlice(calories).Sort()
 
 	lastThree := collection.LastN(calories, 3)
 	total := collection.Sum(lastThree)
-	fmt.Println(total)
+	return total
 }
 
 func readFile(input []byte) []int {

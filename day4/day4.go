@@ -3,7 +3,6 @@ package day4
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -12,7 +11,7 @@ import (
 )
 
 // 532
-func PartA(input []byte) {
+func PartA(input []byte) any {
 	data := readFile(input)
 	result := 0
 
@@ -22,11 +21,11 @@ func PartA(input []byte) {
 		}
 	}
 
-	fmt.Println(result)
+	return result
 }
 
 // 854
-func PartB(input []byte) {
+func PartB(input []byte) any {
 	data := readFile(input)
 	result := 0
 
@@ -36,7 +35,7 @@ func PartB(input []byte) {
 		}
 	}
 
-	fmt.Println(result)
+	return result
 }
 
 // Does first contain all elements present in second?

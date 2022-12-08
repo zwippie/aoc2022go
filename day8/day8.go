@@ -1,11 +1,7 @@
 package day8
 
-import (
-	"fmt"
-)
-
 // 1700
-func PartA(input []byte) {
+func PartA(input []byte) any {
 	data := parseInput(input)
 	rowLen, colLen := len(data), len(data[0])
 	visibleTreeCount := 2*(rowLen-1) + 2*(colLen-1)
@@ -48,11 +44,11 @@ func PartA(input []byte) {
 		}
 	}
 
-	fmt.Printf("visibleTreeCount: %v\n", visibleTreeCount)
+	return visibleTreeCount
 }
 
 // 470596
-func PartB(input []byte) {
+func PartB(input []byte) any {
 	data := parseInput(input)
 	rowLen, colLen := len(data), len(data[0])
 	maxScenicScore := 0
@@ -63,7 +59,7 @@ func PartB(input []byte) {
 		}
 	}
 
-	fmt.Printf("maxScenicScore: %v\n", maxScenicScore)
+	return maxScenicScore
 }
 
 func scenicScore(data [][]int, rowIdx int, colIdx int) int {

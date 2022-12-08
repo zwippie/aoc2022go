@@ -3,13 +3,12 @@ package day3
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"strings"
 )
 
 // 7581
-func PartA(input []byte) {
+func PartA(input []byte) any {
 	totalScore := 0
 
 	for _, line := range readFile(input) {
@@ -19,11 +18,11 @@ func PartA(input []byte) {
 		totalScore += priority(duplicate)
 	}
 
-	fmt.Println(totalScore)
+	return totalScore
 }
 
 // 2525
-func PartB(input []byte) {
+func PartB(input []byte) any {
 	data := readFile(input)
 	totalScore := 0
 
@@ -32,7 +31,7 @@ func PartB(input []byte) {
 		totalScore += priority(duplicate)
 	}
 
-	fmt.Println(totalScore)
+	return totalScore
 }
 
 func priority(char rune) int {

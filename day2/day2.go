@@ -3,13 +3,12 @@ package day2
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"strings"
 )
 
 // 13446
-func PartA(input []byte) {
+func PartA(input []byte) any {
 	data := readFile(input)
 	totalScore := 0
 	for _, pair := range data {
@@ -17,11 +16,11 @@ func PartA(input []byte) {
 		player := normalizeInput(pair[1])
 		totalScore += score(elf, player) + player + 1
 	}
-	fmt.Println(totalScore)
+	return totalScore
 }
 
 // 13509
-func PartB(input []byte) {
+func PartB(input []byte) any {
 	data := readFile(input)
 	totalScore := 0
 	for _, pair := range data {
@@ -30,7 +29,7 @@ func PartB(input []byte) {
 		player := playerMove(elf, hint)
 		totalScore += score(elf, player) + player + 1
 	}
-	fmt.Println(totalScore)
+	return totalScore
 }
 
 func playerMove(elf int, hint int) int {
