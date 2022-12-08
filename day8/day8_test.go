@@ -6,11 +6,12 @@ import (
 	"testing"
 )
 
+var fileName = "day8.txt"
 var expectedA = 1700
 var expectedB = 470596
 
 func TestPartA(t *testing.T) {
-	input := myinput.ReadInput("8", "")
+	input := myinput.ReadInput(fileName)
 	got := day8.PartA(input)
 	if got != expectedA {
 		t.Errorf("expected: %v, got: %v", expectedA, got)
@@ -18,14 +19,14 @@ func TestPartA(t *testing.T) {
 }
 
 func BenchmarkPartA(b *testing.B) {
-	input := myinput.ReadInput("8", "")
+	input := myinput.ReadInput(fileName)
 	for i := 0; i < b.N; i++ {
 		day8.PartA(input)
 	}
 }
 
 func TestPartB(t *testing.T) {
-	input := myinput.ReadInput("8", "")
+	input := myinput.ReadInput(fileName)
 	got := day8.PartB(input)
 	if got != expectedB {
 		t.Errorf("expected: %v, got: %v", expectedB, got)
@@ -33,7 +34,7 @@ func TestPartB(t *testing.T) {
 }
 
 func BenchmarkPartB(b *testing.B) {
-	input := myinput.ReadInput("8", "")
+	input := myinput.ReadInput(fileName)
 	for i := 0; i < b.N; i++ {
 		day8.PartB(input)
 	}

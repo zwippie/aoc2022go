@@ -43,9 +43,10 @@ func main() {
 	}
 
 	if f, ok := days[day+part]; ok {
-		data := myinput.ReadInput(day, inputSuffix)
+		fileName := fmt.Sprintf("day%s%s.txt", day, inputSuffix)
+		data := myinput.ReadInput(fileName)
 		fmt.Println(f(data))
 	} else {
-		log.Fatal(day, " not implemented")
+		log.Fatalf("day %s%s not implemented", day, part)
 	}
 }

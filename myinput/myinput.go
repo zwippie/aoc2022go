@@ -1,3 +1,4 @@
+// blabla
 package myinput
 
 import (
@@ -6,11 +7,12 @@ import (
 	"log"
 )
 
-//go:embed data/*.txt
+//go:embed data/*
 var dataSets embed.FS
 
-func ReadInput(day string, suffix string) []byte {
-	data, err := dataSets.ReadFile(fmt.Sprintf("data/day%s%s.txt", day, suffix))
+// Read a file from the data directory.
+func ReadInput(fileName string) []byte {
+	data, err := dataSets.ReadFile(fmt.Sprintf("data/%s", fileName))
 	if err != nil {
 		log.Fatal(err)
 	}
