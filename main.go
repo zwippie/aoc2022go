@@ -9,6 +9,7 @@ import (
 	"aoc2022/day6"
 	"aoc2022/day7"
 	"aoc2022/day8"
+	"aoc2022/day9"
 	"aoc2022/myinput"
 	"fmt"
 	"log"
@@ -32,6 +33,8 @@ var days = map[string]func([]byte) any{
 	"7b": day7.PartB,
 	"8a": day8.PartA,
 	"8b": day8.PartB,
+	"9a": day9.PartA,
+	"9b": day9.PartB,
 }
 
 func main() {
