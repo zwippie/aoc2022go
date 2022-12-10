@@ -15,7 +15,7 @@ type Pos struct {
 func PartA(input []byte) any {
 	data := parseInput(input)
 	head, tail := Pos{0, 0}, Pos{0, 0}
-	tailPath := map[Pos]int{{0, 0}: 1}
+	tailPath := map[Pos]int{}
 
 	for _, dir := range data {
 		head.move(dir)
@@ -28,8 +28,25 @@ func PartA(input []byte) any {
 	return len(tailPath)
 }
 
+// 2533
 func PartB(input []byte) any {
-	return 0
+	data := parseInput(input)
+	var knots []Pos = make([]Pos, 10)
+	tailPath := map[Pos]int{}
+
+	for _, dir := range data {
+		knots[0].move(dir)
+		for idx, _ := range knots {
+			if idx != 0 {
+				if !touching(knots[idx-1], knots[idx]) {
+					knots[idx].moveTail(knots[idx-1])
+				}
+			}
+		}
+		tailPath[knots[9]] = 1
+	}
+
+	return len(tailPath)
 }
 
 func (knot *Pos) move(dir string) {
