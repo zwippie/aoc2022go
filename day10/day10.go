@@ -11,6 +11,7 @@ type Cpu struct {
 	regX              int
 	cycle             int
 	signalStrengthSum int
+	crt               []bool
 }
 
 type Op struct {
@@ -21,15 +22,21 @@ type Op struct {
 // 17020
 func PartA(input []byte) any {
 	program := parseInput(input)
-	cpu := Cpu{regX: 1}
+	cpu := Cpu{regX: 1, crt: make([]bool, 240)}
 	for _, op := range program {
 		cpu.execute(op)
 	}
 	return cpu.signalStrengthSum
 }
 
+// RLEZFLGE
 func PartB(input []byte) any {
-	return 0
+	program := parseInput(input)
+	cpu := Cpu{regX: 1, crt: make([]bool, 240)}
+	for _, op := range program {
+		cpu.execute(op)
+	}
+	return cpu.crtToString()
 }
 
 func (cpu *Cpu) execute(op Op) {
@@ -44,10 +51,32 @@ func (cpu *Cpu) execute(op Op) {
 }
 
 func (cpu *Cpu) addCycle() {
-	cpu.cycle += 1
-	if (cpu.cycle % 40) == 20 {
+	cycle := cpu.cycle % 40
+	if cycle == cpu.regX-1 || cycle == cpu.regX || cycle == cpu.regX+1 {
+		cpu.crt[cpu.cycle] = true
+	} else {
+		cpu.crt[cpu.cycle] = false
+	}
+
+	cpu.cycle++
+	if cpu.cycle%40 == 20 {
 		cpu.signalStrengthSum += cpu.cycle * cpu.regX
 	}
+}
+
+func (cpu *Cpu) crtToString() string {
+	result := ""
+	for idx, pixel := range cpu.crt {
+		if pixel {
+			result += "#"
+		} else {
+			result += "."
+		}
+		if idx%40 == 39 {
+			result += "\n"
+		}
+	}
+	return result
 }
 
 func parseInput(input []byte) []Op {
