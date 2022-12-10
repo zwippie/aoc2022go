@@ -36,7 +36,7 @@ func PartB(input []byte) any {
 
 	for _, dir := range data {
 		knots[0].move(dir)
-		for idx, _ := range knots {
+		for idx := range knots {
 			if idx != 0 {
 				if !touching(knots[idx-1], knots[idx]) {
 					knots[idx].moveTail(knots[idx-1])
