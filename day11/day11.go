@@ -1,7 +1,6 @@
 package day11
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,44 +20,40 @@ type Monkeys []*Monkey
 
 // 117640
 func PartA(input []byte) any {
-	monkeys := parseInput(input)
+	monkeys, dividerMul := parseInput(input)
 	for i := 0; i < 20; i++ {
-		monkeys.performRound()
-		// printMonkeys(monkeys)
+		monkeys.performRound(true, dividerMul)
 	}
 	return getScore(monkeys)
 }
 
+// 30616425600
 func PartB(input []byte) any {
-	monkeys := parseInput(input)
-	for i := 0; i < 1000; i++ {
-		monkeys.performRound()
+	monkeys, dividerMul := parseInput(input)
+	for i := 0; i < 10000; i++ {
+		monkeys.performRound(false, dividerMul)
 	}
-	printMonkeys(monkeys)
 	return getScore(monkeys)
 }
 
-func (monkeys Monkeys) performRound() {
+func (monkeys Monkeys) performRound(divideByThree bool, dividerMul int) {
 	for _, monkey := range monkeys {
-		// fmt.Printf("monkey in: %v\n", monkey)
 		for _, item := range monkey.items {
 			item = monkey.operation(item)
 			monkey.inspected++
-			// item /= 3
+			if divideByThree {
+				item /= 3
+			}
+			item %= dividerMul
 			if item%monkey.divisibleBy == 0 {
 				otherMonkey := monkeys[monkey.ifTrue]
-				// fmt.Printf("otherMonkey in: %v\n", otherMonkey)
 				otherMonkey.items = append(otherMonkey.items, item)
-				// fmt.Printf("otherMonkey out: %v\n", otherMonkey)
 			} else {
 				otherMonkey := monkeys[monkey.ifFalse]
-				// fmt.Printf("otherMonkey in: %v\n", otherMonkey)
 				otherMonkey.items = append(otherMonkey.items, item)
-				// fmt.Printf("otherMonkey out: %v\n", otherMonkey)
 			}
 		}
 		monkey.items = []int{}
-		// fmt.Printf("monkey out: %v\n", monkey)
 	}
 }
 
@@ -71,13 +66,7 @@ func getScore(monkeys Monkeys) int {
 	return inspected[len(inspected)-2] * inspected[len(inspected)-1]
 }
 
-func printMonkeys(monkeys Monkeys) {
-	for _, monkey := range monkeys {
-		fmt.Println(monkey)
-	}
-}
-
-func parseInput(input []byte) Monkeys {
+func parseInput(input []byte) (Monkeys, int) {
 	monkeys := Monkeys{}
 	parts := strings.Split(string(input), "\n\n")
 
@@ -85,9 +74,12 @@ func parseInput(input []byte) Monkeys {
 		monkeys = append(monkeys, parseMonkey(part))
 	}
 
-	strings.Split(string(input), "\n\n")
+	dividerMul := 1
+	for _, monkey := range monkeys {
+		dividerMul *= monkey.divisibleBy
+	}
 
-	return monkeys
+	return monkeys, dividerMul
 }
 
 func parseMonkey(data string) *Monkey {
@@ -125,7 +117,7 @@ func getOperation(line string) func(int) int {
 		return add(val)
 	}
 	if parts[2] == "old" {
-		return mulSelf()
+		return square()
 	}
 	val, _ := strconv.Atoi(parts[2])
 	return mul(val)
@@ -143,7 +135,7 @@ func mul(a int) func(int) int {
 	}
 }
 
-func mulSelf() func(int) int {
+func square() func(int) int {
 	return func(val int) int {
 		return val * val
 	}
