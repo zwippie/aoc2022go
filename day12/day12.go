@@ -69,16 +69,17 @@ func dijkstra(nodes NodeMap, startPos Pos, endPos Pos) (map[Pos]int, map[*Node]*
 			return dist, prev
 		}
 		currentNode := q[currentPos]
-		// remove the current node from the q
+		// remove the current node from the q, do not visit nodes twice.
 		// any node trying to visit this node later will always have a longer dist to start
 		delete(q, currentPos)
 
+		// find neighbours that are unvisited
 		for _, pos := range neighboursStillInQ(q, currentNode) {
 			if node, ok := q[pos]; ok {
-				alt := dist[currentNode.pos] + 1
-				if alt < dist[node.pos] {
-					dist[node.pos] = alt
-					prev[node] = currentNode
+				alt := dist[currentNode.pos] + 1 // the distance of the next node to start
+				if alt < dist[node.pos] {        // if this path is shorter than the previous path
+					dist[node.pos] = alt     // the neighbour can be reached faster
+					prev[node] = currentNode // so update it's prev path to the currentNode
 				}
 			}
 		}
