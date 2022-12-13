@@ -5,99 +5,145 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"reflect"
+	"log"
 	"strconv"
 )
-
-type Elem interface {
-}
 
 type List []any
 
 func PartA(input []byte) any {
-	input = []byte("[[1],[2,3,4]]")
-	data := parseInput(input)
-	fmt.Printf("data: %#v\n", data)
-	fmt.Printf("len(data): %v\n", len(data))
-	fmt.Printf("data[0]: %T %v\n", data[0], data[0])
-	fmt.Printf("len(data[0]): %v\n", len(data[0]))
-	fmt.Printf("data[0][0]: %T %v\n", data[0][0], data[0][0])
+	pairs := parseInput(input)
+	fmt.Printf("packets: %v\n", pairs)
 
-	// len([int]List(data[0][0]))
-	d := reflectOn((data[0][0]))
-	fmt.Printf("d: %#v\n", d)
+	result := 0
+	for i, pair := range pairs {
+		fmt.Println("START of", i+1)
+		left, right := pair[0], pair[1]
+		_, inOrder := inRightOrder(left, right)
+		if inOrder {
+			result += i + 1
+		}
+	}
 
-	return 0
+	return result
 }
 
 func PartB(input []byte) any {
 	return 0
 }
 
-func reflectOn(value any) any {
-	switch v := value.(type) {
+func inRightOrder(left List, right List) (cont bool, inOrder bool) {
+	fmt.Printf("left: %v\n", left)
+	fmt.Printf("right: %v\n", right)
+
+	if left.IsEmpty() && right.IsEmpty() {
+		fmt.Println("Both lists are empty")
+		return true, true // continue
+	}
+	if left.IsEmpty() && !right.IsEmpty() {
+		fmt.Println("Left is empty, right not")
+		return false, true // right order
+	}
+	if !left.IsEmpty() && right.IsEmpty() {
+		fmt.Println("Right is empty, left not")
+		return false, false // right order
+	}
+
+	if left.NextIsInt() && right.NextIsInt() {
+		fmt.Println("Both are integers")
+		_, left, lVal, _ := left.Next()
+		_, right, rVal, _ := right.Next()
+		if lVal < rVal {
+			return false, true
+		} else if lVal > rVal {
+			return false, false
+		}
+		fmt.Println("  But they are equal")
+		return inRightOrder(left, right)
+	}
+
+	if left.NextIsInt() && !right.NextIsInt() {
+		fmt.Println("Wrap the left")
+		_, left, lVal, _ := left.Next()
+		rNext, right, _, _ := right.Next()
+		lNext := List{lVal}
+		if cont, inOrder := inRightOrder(lNext, rNext); cont {
+			return inRightOrder(left, right)
+		} else {
+			return cont, inOrder
+		}
+	}
+
+	if !left.NextIsInt() && right.NextIsInt() {
+		fmt.Println("Wrap the right")
+		lNext, left, _, _ := left.Next()
+		_, right, rVal, _ := right.Next()
+		rNext := List{rVal}
+		if cont, inOrder := inRightOrder(lNext, rNext); cont {
+			return inRightOrder(left, right)
+		} else {
+			return cont, inOrder
+		}
+	}
+
+	if !left.NextIsInt() && !right.NextIsInt() {
+		fmt.Println("Both are lists")
+		lNext, left, _, _ := left.Next()
+		rNext, right, _, _ := right.Next()
+		if cont, inOrder := inRightOrder(lNext, rNext); cont {
+			return inRightOrder(left, right)
+		} else {
+			return cont, inOrder
+		}
+	}
+
+	fmt.Println(">>End of comparison")
+	return false, false // never reached?
+}
+
+func (l List) IsEmpty() bool {
+	return len(l) == 0
+}
+
+func (l List) Next() (next List, rest List, num int, ok bool) {
+	if l.IsEmpty() {
+		return // List{}, 0, l, false
+	}
+	head, tail := l[0], l[1:]
+	switch v := head.(type) {
 	case int:
-		fmt.Printf("type of %v is %v int\n", value, v)
-		return int(v)
-	default:
-		fmt.Printf("type of %v is %v so must be a List?\n", value, v)
-		l := v.(List)
-		for k, v := range l {
-			fmt.Printf("k: %v, v: %v\n", k, v)
-			fmt.Printf("%v: %#v\n", v, reflectOn(v))
-		}
-		return l
+		return List{}, tail, int(v), true
 	}
+	return head.(List), tail, 0, true
 }
 
-func reflectOnList(value any) {
-	fmt.Printf("reflectOnList: %v\n", value)
-	kind := reflect.TypeOf(value).Kind()
-	fmt.Printf("kind: %v\n", kind)
-	switch kind {
-	case reflect.Slice:
-		fmt.Println("it's a slice")
-		s := reflect.ValueOf(value)
-		fmt.Println(s, s.Len())
-
-		for i := 0; i < s.Len(); i++ {
-			fmt.Println(s.Index(i))
-			reflectOnList(s.Index(i))
-		}
-	case reflect.Int:
-		fmt.Println("it's an int")
-		s := reflect.ValueOf(value)
-		fmt.Println(s)
-	case reflect.Struct:
-		fmt.Println("it's a struct")
-		s := reflect.ValueOf(value)
-		fmt.Println(s)
-		// list := List(value)
-		for i := 0; i < s.Len(); i++ {
-			fmt.Println(s.Index(i))
-			reflectOnList(s.Index(i))
-		}
-	case reflect.Array:
-		fmt.Println("it's an array")
-		s := reflect.ValueOf(value)
-		fmt.Println(s)
-	case reflect.Interface:
-		fmt.Println("it's an interface")
-		s := reflect.ValueOf(value)
-		fmt.Println(s)
+func (l List) NextIsInt() bool {
+	if l.IsEmpty() {
+		return false
 	}
+	switch l[0].(type) {
+	case int:
+		return true
+	}
+	return false
 }
 
-func parseInput(input []byte) []List {
+func parseInput(input []byte) [][]List {
 	reader := bytes.NewReader(input)
 	scanner := bufio.NewScanner(reader)
-	result := []List{}
+	result := [][]List{}
 
 	for scanner.Scan() {
+		pair := []List{}
 		line := scanner.Bytes()
 		list := parseList(line)
-		result = append(result, list)
-		break
+		pair = append(pair, list)
+		scanner.Scan()
+		line = scanner.Bytes()
+		list = parseList(line)
+		pair = append(pair, list)
+		result = append(result, pair)
+		scanner.Scan()
 	}
 
 	return result
@@ -108,8 +154,12 @@ func parseList(input []byte) List {
 	digits := []byte{}
 	list := List{}
 
-	for _, char := range input {
-		fmt.Printf("char: %v, %s\n", char, string(char))
+	if len(input) == 0 {
+		return list
+	}
+
+	for _, char := range input { //[1 : len(input)-1] {
+		// fmt.Printf("char: %v, %s\n", char, string(char))
 
 		switch char {
 		case 10: // newline
@@ -137,6 +187,8 @@ func parseList(input []byte) List {
 			list = prevList
 		}
 	}
-	fmt.Printf("listStack.IsEmpty(): %v\n", listStack.IsEmpty())
-	return list
+	if !listStack.IsEmpty() {
+		log.Fatal("invalid input:", string(input))
+	}
+	return list[0].(List)
 }
