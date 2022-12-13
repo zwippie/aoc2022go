@@ -9,8 +9,7 @@ import (
 	"strconv"
 )
 
-type Element interface {
-	int | List
+type Elem interface {
 }
 
 type List []any
@@ -25,12 +24,8 @@ func PartA(input []byte) any {
 	fmt.Printf("data[0][0]: %T %v\n", data[0][0], data[0][0])
 
 	// len([int]List(data[0][0]))
-	reflectOnList((data[0][0]))
-
-	var s = []interface{}{1, 2, "three", reflectOnList}
-	for k, v := range s {
-		fmt.Printf("k: %v, v: %v, T(v): %T\n", k, v, v)
-	}
+	d := reflectOn((data[0][0]))
+	fmt.Printf("d: %#v\n", d)
 
 	return 0
 }
@@ -39,14 +34,30 @@ func PartB(input []byte) any {
 	return 0
 }
 
-func reflectOnList(list any) {
-	fmt.Printf("reflectOnList: %v\n", list)
-	kind := reflect.TypeOf(list).Kind()
+func reflectOn(value any) any {
+	switch v := value.(type) {
+	case int:
+		fmt.Printf("type of %v is %v int\n", value, v)
+		return int(v)
+	default:
+		fmt.Printf("type of %v is %v so must be a List?\n", value, v)
+		l := v.(List)
+		for k, v := range l {
+			fmt.Printf("k: %v, v: %v\n", k, v)
+			fmt.Printf("%v: %#v\n", v, reflectOn(v))
+		}
+		return l
+	}
+}
+
+func reflectOnList(value any) {
+	fmt.Printf("reflectOnList: %v\n", value)
+	kind := reflect.TypeOf(value).Kind()
 	fmt.Printf("kind: %v\n", kind)
 	switch kind {
 	case reflect.Slice:
 		fmt.Println("it's a slice")
-		s := reflect.ValueOf(list)
+		s := reflect.ValueOf(value)
 		fmt.Println(s, s.Len())
 
 		for i := 0; i < s.Len(); i++ {
@@ -55,19 +66,24 @@ func reflectOnList(list any) {
 		}
 	case reflect.Int:
 		fmt.Println("it's an int")
-		s := reflect.ValueOf(list)
+		s := reflect.ValueOf(value)
 		fmt.Println(s)
 	case reflect.Struct:
 		fmt.Println("it's a struct")
-		s := reflect.ValueOf(list)
+		s := reflect.ValueOf(value)
 		fmt.Println(s)
+		// list := List(value)
+		for i := 0; i < s.Len(); i++ {
+			fmt.Println(s.Index(i))
+			reflectOnList(s.Index(i))
+		}
 	case reflect.Array:
 		fmt.Println("it's an array")
-		s := reflect.ValueOf(list)
+		s := reflect.ValueOf(value)
 		fmt.Println(s)
 	case reflect.Interface:
 		fmt.Println("it's an interface")
-		s := reflect.ValueOf(list)
+		s := reflect.ValueOf(value)
 		fmt.Println(s)
 	}
 }
