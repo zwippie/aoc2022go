@@ -4,20 +4,22 @@ import (
 	"aoc2022/stack"
 	"bufio"
 	"bytes"
-	"fmt"
 	"log"
 	"strconv"
+
+	"golang.org/x/exp/slices"
 )
 
 type List []any
 
+// 5252
 func PartA(input []byte) any {
 	pairs := parseInput(input)
-	fmt.Printf("packets: %v\n", pairs)
+	// fmt.Printf("packets: %v\n", pairs)
 
 	result := 0
 	for i, pair := range pairs {
-		fmt.Println("START of", i+1)
+		// fmt.Println("START of", i+1)
 		left, right := pair[0], pair[1]
 		_, inOrder := inRightOrder(left, right)
 		if inOrder {
@@ -28,29 +30,61 @@ func PartA(input []byte) any {
 	return result
 }
 
+// 20592
 func PartB(input []byte) any {
-	return 0
+	pairs := parseInput(input)
+	divider1 := List{List{2}}
+	divider2 := List{List{6}}
+	packets := []List{divider1, divider2}
+
+	for _, pair := range pairs {
+		left, right := pair[0], pair[1]
+		packets = append(packets, left, right)
+	}
+	// fmt.Printf("packets: %v\n", packets)
+	slices.SortFunc(packets, sortFunc)
+	// fmt.Printf("packets: %v\n", packets)
+
+	result := 1
+	for i, packet := range packets {
+		if slices.EqualFunc([]List{packet}, []List{divider1}, eqFunc) ||
+			slices.EqualFunc([]List{packet}, []List{divider2}, eqFunc) {
+			result *= i + 1
+		}
+	}
+
+	return result
+}
+
+func eqFunc(left List, right List) bool {
+	cont, _ := inRightOrder(left, right)
+	return cont
+}
+
+func sortFunc(left List, right List) bool {
+	_, isLess := inRightOrder(left, right)
+	return isLess
 }
 
 func inRightOrder(left List, right List) (cont bool, inOrder bool) {
-	fmt.Printf("left: %v\n", left)
-	fmt.Printf("right: %v\n", right)
+	// fmt.Printf("left: %v\n", left)
+	// fmt.Printf("right: %v\n", right)
 
 	if left.IsEmpty() && right.IsEmpty() {
-		fmt.Println("Both lists are empty")
+		// fmt.Println("Both lists are empty")
 		return true, true // continue
 	}
 	if left.IsEmpty() && !right.IsEmpty() {
-		fmt.Println("Left is empty, right not")
+		// fmt.Println("Left is empty, right not")
 		return false, true // right order
 	}
 	if !left.IsEmpty() && right.IsEmpty() {
-		fmt.Println("Right is empty, left not")
+		// fmt.Println("Right is empty, left not")
 		return false, false // right order
 	}
 
 	if left.NextIsInt() && right.NextIsInt() {
-		fmt.Println("Both are integers")
+		// fmt.Println("Both are integers")
 		_, left, lVal, _ := left.Next()
 		_, right, rVal, _ := right.Next()
 		if lVal < rVal {
@@ -58,12 +92,12 @@ func inRightOrder(left List, right List) (cont bool, inOrder bool) {
 		} else if lVal > rVal {
 			return false, false
 		}
-		fmt.Println("  But they are equal")
+		// fmt.Println("  But they are equal")
 		return inRightOrder(left, right)
 	}
 
 	if left.NextIsInt() && !right.NextIsInt() {
-		fmt.Println("Wrap the left")
+		// fmt.Println("Wrap the left")
 		_, left, lVal, _ := left.Next()
 		rNext, right, _, _ := right.Next()
 		lNext := List{lVal}
@@ -75,7 +109,7 @@ func inRightOrder(left List, right List) (cont bool, inOrder bool) {
 	}
 
 	if !left.NextIsInt() && right.NextIsInt() {
-		fmt.Println("Wrap the right")
+		// fmt.Println("Wrap the right")
 		lNext, left, _, _ := left.Next()
 		_, right, rVal, _ := right.Next()
 		rNext := List{rVal}
@@ -87,7 +121,7 @@ func inRightOrder(left List, right List) (cont bool, inOrder bool) {
 	}
 
 	if !left.NextIsInt() && !right.NextIsInt() {
-		fmt.Println("Both are lists")
+		// fmt.Println("Both are lists")
 		lNext, left, _, _ := left.Next()
 		rNext, right, _, _ := right.Next()
 		if cont, inOrder := inRightOrder(lNext, rNext); cont {
@@ -97,7 +131,7 @@ func inRightOrder(left List, right List) (cont bool, inOrder bool) {
 		}
 	}
 
-	fmt.Println(">>End of comparison")
+	// fmt.Println(">>End of comparison")
 	return false, false // never reached?
 }
 
