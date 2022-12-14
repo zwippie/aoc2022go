@@ -3,7 +3,6 @@ package day14
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -23,23 +22,48 @@ type Pos struct {
 }
 type Cave map[Pos]Content
 
-var minX, minY = math.MaxInt, math.MaxInt
-var maxX, maxY = math.MinInt, math.MinInt
+var maxY = math.MinInt
 
+// 888
 func PartA(input []byte) any {
 	cave := parseInput(input)
-	fmt.Printf("cave: %v\n", cave)
-	cave.addSand(Pos{500, 0})
-	fmt.Printf("cave: %v\n", cave)
-
-	return 0
+	result := 0
+	for !cave.addSand(Pos{500, 0}) {
+		result++
+	}
+	return result
 }
 
+// 26461
 func PartB(input []byte) any {
-	return 0
+	cave := parseInput(input)
+	maxY += 2
+	cave = placeRocks(cave, Pos{500 - maxY, maxY}, Pos{500 + maxY, maxY})
+	result := 0
+	for !cave.addSand(Pos{500, 0}) {
+		result++
+		if cave[Pos{500, 0}] == Sand {
+			break
+		}
+	}
+	return result
 }
 
-func (cave Cave) addSand(fromPos Pos) bool {
+func (cave Cave) addSand(pos Pos) (done bool) {
+	for {
+		if pos.y > maxY {
+			return true
+		} else if cave[Pos{pos.x, pos.y + 1}] == Empty {
+			pos = Pos{pos.x, pos.y + 1}
+		} else if cave[Pos{pos.x - 1, pos.y + 1}] == Empty {
+			pos = Pos{pos.x - 1, pos.y + 1}
+		} else if cave[Pos{pos.x + 1, pos.y + 1}] == Empty {
+			pos = Pos{pos.x + 1, pos.y + 1}
+		} else {
+			cave[pos] = Sand
+			break
+		}
+	}
 	return false
 }
 
@@ -56,9 +80,6 @@ func parseInput(input []byte) Cave {
 			coords := strings.Split(part, ",")
 			x, _ := strconv.Atoi(coords[0])
 			y, _ := strconv.Atoi(coords[1])
-			minX = min(minX, x)
-			maxX = max(maxX, x)
-			minY = min(minY, y)
 			maxY = max(maxY, y)
 			segments = append(segments, Pos{x, y})
 		}
@@ -66,7 +87,6 @@ func parseInput(input []byte) Cave {
 			cave = placeRocks(cave, segments[i], segments[i+1])
 		}
 	}
-	fmt.Println(minX, maxX, minY, maxY)
 	return cave
 }
 
@@ -94,13 +114,6 @@ func placeRocks(cave Cave, from Pos, to Pos) Cave {
 	}
 	return cave
 
-}
-
-func min(a int, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func max(a int, b int) int {
