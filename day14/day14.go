@@ -28,7 +28,7 @@ var maxY = math.MinInt
 func PartA(input []byte) any {
 	cave := parseInput(input)
 	result := 0
-	for !cave.addSand(Pos{500, 0}) {
+	for cave.addSand(Pos{500, 0}) {
 		result++
 	}
 	return result
@@ -40,19 +40,19 @@ func PartB(input []byte) any {
 	maxY += 2
 	cave = placeRocks(cave, Pos{500 - maxY, maxY}, Pos{500 + maxY, maxY})
 	result := 0
-	for !cave.addSand(Pos{500, 0}) {
+	for cave.addSand(Pos{500, 0}) {
 		result++
-		if cave[Pos{500, 0}] == Sand {
-			break
-		}
 	}
 	return result
 }
 
-func (cave Cave) addSand(pos Pos) (done bool) {
+func (cave Cave) addSand(pos Pos) (cont bool) {
+	if cave[Pos{500, 0}] != Empty {
+		return false
+	}
 	for {
 		if pos.y > maxY {
-			return true
+			return false
 		} else if cave[Pos{pos.x, pos.y + 1}] == Empty {
 			pos = Pos{pos.x, pos.y + 1}
 		} else if cave[Pos{pos.x - 1, pos.y + 1}] == Empty {
@@ -64,7 +64,7 @@ func (cave Cave) addSand(pos Pos) (done bool) {
 			break
 		}
 	}
-	return false
+	return true
 }
 
 func parseInput(input []byte) Cave {
