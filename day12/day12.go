@@ -29,7 +29,7 @@ func PartA(input []byte) any {
 	fmt.Printf("start: %v\n", startPos)
 	fmt.Printf("end: %v\n", endPos)
 
-	dist, prev := dijkstra(nodes, startPos, endPos)
+	dist, prev := dijkstra(nodes, startPos, endPos, false)
 	fmt.Printf("len(prev): %v\n", len(prev))
 	fmt.Printf("dist[end]: %v\n", dist[endPos])
 
@@ -40,11 +40,17 @@ func PartA(input []byte) any {
 }
 
 func PartB(input []byte) any {
-	return 0
+	nodes, startPos, endPos := parseInput(input)
+	dist, prev := dijkstra(nodes, endPos, startPos, true)
+
+	path := getPath(prev, endPos, startPos, nodes)
+	printMap(nodes, path)
+
+	return dist[endPos] // the answer
 }
 
 // dijkstra shortest path algorithm, as taken from wikipedia
-func dijkstra(nodes NodeMap, startPos Pos, endPos Pos) (map[Pos]int, map[*Node]*Node) {
+func dijkstra(nodes NodeMap, startPos Pos, endPos Pos, reverse bool) (map[Pos]int, map[*Node]*Node) {
 	dist := make(map[Pos]int)     // current distance of each pos to startPos
 	prev := make(map[*Node]*Node) // pointers to previous nodes on the shortest path
 	q := make(NodeMap)            // map of all the nodes stil to check
@@ -64,11 +70,14 @@ func dijkstra(nodes NodeMap, startPos Pos, endPos Pos) (map[Pos]int, map[*Node]*
 			fmt.Printf("len(q): %v\n", len(q))
 			log.Fatal("could not find pos with min distance")
 		}
-		if currentPos == endPos {
-			fmt.Println("found it!")
+		currentNode := q[currentPos]
+		if reverse && currentNode.val == 97 { // a
 			return dist, prev
 		}
-		currentNode := q[currentPos]
+		if currentPos == endPos {
+			// fmt.Println("found it!")
+			return dist, prev
+		}
 		// remove the current node from the q, do not visit nodes twice.
 		// any node trying to visit this node later will always have a longer dist to start
 		delete(q, currentPos)
