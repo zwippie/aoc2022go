@@ -13,6 +13,16 @@ func TestIn(t *testing.T) {
 	assert.False(t, utils.In(list, 10))
 }
 
+func TestMaxIn(t *testing.T) {
+	list := []int{1, 12, 3, 24, 15}
+	assert.Equal(t, utils.MaxIn(list), 24)
+}
+
+func TestMinIn(t *testing.T) {
+	list := []int{11, 12, 3, 24, 15}
+	assert.Equal(t, utils.MinIn(list), 3)
+}
+
 func TestCopyMap(t *testing.T) {
 	m1 := map[string]interface{}{
 		"a": "bbb",

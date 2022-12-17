@@ -26,6 +26,26 @@ func Abs(num int) int {
 	return num
 }
 
+func MaxIn(s []int) int {
+	max := s[0]
+	for _, v := range s[1:] {
+		if v > max {
+			max = v
+		}
+	}
+	return max
+}
+
+func MinIn(s []int) int {
+	min := s[0]
+	for _, v := range s[1:] {
+		if v < min {
+			min = v
+		}
+	}
+	return min
+}
+
 func ParseInt(val string) int {
 	num, err := strconv.Atoi(val)
 	if err != nil {
