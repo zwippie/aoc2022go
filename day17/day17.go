@@ -23,14 +23,17 @@ func PartB(input []byte) any {
 	shapes := GetShapes()
 	grid := NewGrid()
 
-	grid.buildTower(shapes, jets, 1000000000000)
+	grid.buildTower(shapes, jets, 10_000)
+	// grid.Print()
 
 	return grid.maxRow
 }
 
 func (grid *Grid) buildTower(shapes *Shapes, jets *Jets, steps int) {
+	shapeCount := 0
 	for i := 0; i < steps; i++ {
 		shape := shapes.Next()
+		shapeCount++
 		pos := Pos{grid.maxRow + 4, 2}
 
 		for { // shift and drop

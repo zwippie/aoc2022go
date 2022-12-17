@@ -23,6 +23,18 @@ func TestMinIn(t *testing.T) {
 	assert.Equal(t, utils.MinIn(list), 3)
 }
 
+func TestEqualSlices(t *testing.T) {
+	s1 := []int{1, 2, 3}
+	s2 := []int{1, 2, 3}
+	assert.True(t, utils.EqualSlices(s1, s2))
+
+	s3 := []int{1, 2, 4}
+	assert.False(t, utils.EqualSlices(s1, s3))
+
+	s4 := []int{1, 2, 3, 4}
+	assert.False(t, utils.EqualSlices(s1, s4))
+}
+
 func TestCopyMap(t *testing.T) {
 	m1 := map[string]interface{}{
 		"a": "bbb",

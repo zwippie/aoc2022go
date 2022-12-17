@@ -63,6 +63,18 @@ func In[T comparable](list []T, val T) bool {
 	return false
 }
 
+func EqualSlices[T comparable](s1, s2 []T) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+	for i := 0; i < len(s1); i++ {
+		if s1[i] != s2[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func CopyMap[K comparable, V any](original map[K]V) map[K]V {
 	result := make(map[K]V)
 	for k, v := range original {

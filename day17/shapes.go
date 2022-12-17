@@ -49,26 +49,26 @@ func (g *Grid) PlaceShape(s Shape, p Pos) {
 	}
 	g.maxRow = utils.Max(g.maxRow, maxRow)
 	// full line created?
-	for row := range rowsToCheck {
-		fullRow := true
-		for col := 0; col <= maxCol; col++ {
-			if !g.rocks[Pos{row, col}] {
-				fullRow = false
-				break
-			}
-		}
-		if fullRow {
-			// remove everything below the fullRow to free memory
-			// fmt.Println("full row at", row, "prev was", g.minRow)
-			for row2 := g.minRow; row2 < row; row2++ {
-				for col2 := 0; col2 <= maxCol; col2++ {
-					delete(g.rocks, Pos{row2, col2})
-				}
-			}
-			g.minRow = row
-			break
-		}
-	}
+	// for row := range rowsToCheck {
+	// 	fullRow := true
+	// 	for col := 0; col <= maxCol; col++ {
+	// 		if !g.rocks[Pos{row, col}] {
+	// 			fullRow = false
+	// 			break
+	// 		}
+	// 	}
+	// 	if fullRow {
+	// 		// remove everything below the fullRow to free memory
+	// 		// fmt.Println("full row at", row, "prev was", g.minRow)
+	// 		for row2 := g.minRow; row2 < row; row2++ {
+	// 			for col2 := 0; col2 <= maxCol; col2++ {
+	// 				delete(g.rocks, Pos{row2, col2})
+	// 			}
+	// 		}
+	// 		g.minRow = row
+	// 		break
+	// 	}
+	// }
 }
 
 func (g *Grid) HasRoom(s Shape, p Pos) bool {
@@ -82,7 +82,7 @@ func (g *Grid) HasRoom(s Shape, p Pos) bool {
 }
 
 func (g *Grid) Print() {
-	for row := g.maxRow; row > g.minRow; row-- {
+	for row := g.minRow; row <= g.maxRow; row++ {
 		for col := 0; col <= maxCol; col++ {
 			if g.rocks[Pos{row, col}] {
 				fmt.Print("#")

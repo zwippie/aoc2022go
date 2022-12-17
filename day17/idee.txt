@@ -1,0 +1,36 @@
+# Naive
+....230000000 7m21
+1000000000000
+
+# Next
+
+er zitten herhalende patronen in
+vindt uit wanneer zo'n patroon begint
+en hoe lang het is
+
+veel duidelijker te zien in example dan in eigen input (zie grid.txt files)
+het patroon in example is 53 rows lang en begint te herhalen vanaf row 25
+part a is te kort om een patroon in de eigen input te laten zien?
+toch niet:
+pattern length = 2659/2660, pattern start = 1573 +-1:p <= no, earlier
+maar hoeveel shapes waren daar voor nodig? => 532. na 1573/4 shapes begint het pattern.
+hoeveel shapes nodig voor begin van pattern? 314
+niet genoeg info. we moeten weten hoveel lines er na n shapes zijn.
+wel genoeg info? 1 pattern analyseren en je bent er?
+of berekenen: 1000000000000 - 1573 % 2660 = 87 => nog 
+dus na 1573 + 2647 = 4220 shapes is er repetition?
+
+how tall will the tower be, that's the question!
+elke x shapes komen er n lines bij.
+
+dus 1000000000000 shapes = 314 shapes @start + (x * 4220) + nog wat shapes => len
+x = 1000000000000 / 532
+
+bij hard analyseren ben je er pas na: noise + pat + pat steps. moet kunnen, is nog geen 10k steps.
+
+len example = 40
+len input = 10091
+verder valt er weinig te doen met de input?
+
+row to byte => elke row kun je omzetten naar een byte (7 bits), interessant? wel voor vergelijken.
+
