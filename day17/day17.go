@@ -1,5 +1,7 @@
 package day17
 
+import "fmt"
+
 type Jets struct {
 	jets    []int
 	current int
@@ -13,7 +15,7 @@ func PartA(input []byte) any {
 
 	grid.buildTower(shapes, jets, 2022)
 
-	return grid.MaxRow()
+	return grid.maxRow
 }
 
 func PartB(input []byte) any {
@@ -23,14 +25,13 @@ func PartB(input []byte) any {
 
 	grid.buildTower(shapes, jets, 1000000000000)
 
-	return grid.MaxRow()
+	return grid.maxRow
 }
 
 func (grid *Grid) buildTower(shapes *Shapes, jets *Jets, steps int) {
 	for i := 0; i < steps; i++ {
-		maxRow := grid.MaxRow()
 		shape := shapes.Next()
-		pos := Pos{maxRow + 4, 2}
+		pos := Pos{grid.maxRow + 4, 2}
 
 		for { // shift and drop
 			shift := jets.next()
@@ -43,6 +44,9 @@ func (grid *Grid) buildTower(shapes *Shapes, jets *Jets, steps int) {
 				grid.PlaceShape(shape, pos)
 				break
 			}
+		}
+		if (i % 1_000_000) == 0 {
+			fmt.Printf("i: %v, minRow: %v, maxRow: %v, diff: %v\n", i, grid.minRow, grid.maxRow, grid.maxRow-grid.minRow)
 		}
 	}
 }

@@ -1,11 +1,18 @@
 package day17
 
-import "fmt"
+import (
+	"aoc2022/utils"
+	"fmt"
+)
 
 type Pos struct {
 	row, col int
 }
-type Grid map[Pos]bool
+type Grid struct {
+	minRow int
+	maxRow int
+	rocks  map[Pos]bool
+}
 
 type Shape []Pos
 
@@ -23,45 +30,61 @@ func (shapes *Shapes) Next() Shape {
 }
 
 func NewGrid() *Grid {
-	grid := make(Grid)
+	grid := Grid{rocks: make(map[Pos]bool)}
 	for col := 0; col <= maxCol; col++ {
-		grid[Pos{0, col}] = true
+		grid.rocks[Pos{0, col}] = true
 	}
 	return &grid
 }
 
 func (g *Grid) PlaceShape(s Shape, p Pos) {
+	rowsToCheck := make(map[int]bool)
+	maxRow := 0
+	// place shape
 	for _, pos := range s {
 		pt := p.Add(pos)
-		(*g)[pt] = true
+		g.rocks[pt] = true
+		rowsToCheck[pt.row] = true
+		maxRow = utils.Max(maxRow, pt.row)
+	}
+	g.maxRow = utils.Max(g.maxRow, maxRow)
+	// full line created?
+	for row := range rowsToCheck {
+		fullRow := true
+		for col := 0; col <= maxCol; col++ {
+			if !g.rocks[Pos{row, col}] {
+				fullRow = false
+				break
+			}
+		}
+		if fullRow {
+			// remove everything below the fullRow to free memory
+			// fmt.Println("full row at", row, "prev was", g.minRow)
+			for row2 := g.minRow; row2 < row; row2++ {
+				for col2 := 0; col2 <= maxCol; col2++ {
+					delete(g.rocks, Pos{row2, col2})
+				}
+			}
+			g.minRow = row
+			break
+		}
 	}
 }
 
 func (g *Grid) HasRoom(s Shape, p Pos) bool {
 	for _, pos := range s {
 		pt := p.Add(pos)
-		if pt.col < 0 || pt.col > maxCol || (*g)[pt] {
+		if pt.col < 0 || pt.col > maxCol || g.rocks[pt] {
 			return false
 		}
 	}
 	return true
 }
 
-func (g *Grid) MaxRow() int {
-	maxRow := 0
-	for k := range *g {
-		if k.row > maxRow {
-			maxRow = k.row
-		}
-	}
-	return maxRow
-}
-
 func (g *Grid) Print() {
-	maxRow := g.MaxRow()
-	for row := maxRow; row > 0; row-- {
+	for row := g.maxRow; row > g.minRow; row-- {
 		for col := 0; col <= maxCol; col++ {
-			if (*g)[Pos{row, col}] {
+			if g.rocks[Pos{row, col}] {
 				fmt.Print("#")
 			} else {
 				fmt.Print(".")
