@@ -33,3 +33,33 @@ func ParseInt(val string) int {
 	}
 	return num
 }
+
+func In[T comparable](list []T, val T) bool {
+	for _, elem := range list {
+		if elem == val {
+			return true
+		}
+	}
+	return false
+}
+
+func CopyMap[K comparable, V any](original map[K]V) map[K]V {
+	result := make(map[K]V)
+	for k, v := range original {
+		result[k] = v
+	}
+	return result
+}
+
+// func CopyMap(m map[string]interface{}) map[string]interface{} {
+// 	cp := make(map[string]interface{})
+// 	for k, v := range m {
+// 		vm, ok := v.(map[string]interface{})
+// 		if ok {
+// 			cp[k] = CopyMap(vm)
+// 		} else {
+// 			cp[k] = v
+// 		}
+// 	}
+// 	return cp
+// }

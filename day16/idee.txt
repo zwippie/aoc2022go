@@ -1,0 +1,9 @@
+er zijn maar weinig valves die echt open kunnen: actieve valves
+dus zijn er eigenlijk alleen maar verbindingen tussen actieve valves
+vind de kortste verbindingen tussen alle actieve valves en sla de lengtes op (minuten)
+beginpositie vereenvoudigen
+ga vanuit daar verder zoeken
+
+of
+
+vereenvoudig de start door inactieve valves te verwijderen indien mogelijk
