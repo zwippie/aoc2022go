@@ -10,7 +10,7 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}", // "${fileDirname}",
-      "args": ["18", "b", "example"]
+      "args": ["20", "a", ""]
     }
   ]
 }
