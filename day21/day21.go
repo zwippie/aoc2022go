@@ -1,17 +1,16 @@
 package day21
 
 // Directed acyclic graph (DAG)
-// And an RPN equation solver
+// For part b, this was useful: https://www.cs.utexas.edu/users/novak/algebra.pdf
 
 import (
-	"aoc2022/stack"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 )
 
-type Operator int
+type Operator uint8
 
 const (
 	None Operator = iota
@@ -19,6 +18,7 @@ const (
 	Subtract
 	Multiply
 	Divide
+	Equal
 )
 
 func (o Operator) String() string {
@@ -31,6 +31,8 @@ func (o Operator) String() string {
 		return "*"
 	case Divide:
 		return "/"
+	case Equal:
+		return "="
 	}
 	return ""
 }
@@ -40,8 +42,18 @@ type Node struct {
 	operator Operator
 	left     *Node
 	right    *Node
-	resolved bool
 	value    int
+	variable bool
+}
+
+func (node *Node) String() string {
+	if node.variable {
+		return "X"
+	}
+	if node.left == nil && node.right == nil {
+		return fmt.Sprint(node.value)
+	}
+	return "(" + node.operator.String() + " " + node.left.String() + " " + node.right.String() + ")"
 }
 
 type NodeMap map[string]*Node
@@ -49,138 +61,144 @@ type NodeMap map[string]*Node
 // 324122188240430
 func PartA(input []byte) any {
 	nodes := parseInput(input)
-	return performOperation(nodes["root"])
+	return resolveValue(nodes["root"])
 }
 
+// 3412650897405
 func PartB(input []byte) any {
 	nodes := parseInput(input)
 
-	rpn := &[]any{}
-	toRpn(nodes["root"], rpn)
-	fmt.Printf("rpn: %v\n", rpn)
-	result := evalRpn(rpn)
-	fmt.Printf("result: %v\n", result)
+	root := nodes["root"]
+	root.operator = Equal
+	nodes["humn"].variable = true
+	// fmt.Printf("equation: %v\n", nodes["root"])
 
-	return 0 // smarterNaiveSearch(nodes)
+	root.left, root.right = root.right, root.left
+	solved := solveEquation(root)
+	// fmt.Printf("solved: %v\n", solved)
+
+	return resolveValue(solved.right)
 }
 
-func evalRpn(rpn *[]any) int {
-	s := stack.Stack[int]{}
-	for _, next := range *rpn {
-		switch val := next.(type) {
-		case int:
-			s.Push(int(val))
-		default:
-			switch next {
-			case Add:
-				s.Push(s.Pop() + s.Pop())
-			case Subtract:
-				b, a := s.Pop(), s.Pop()
-				s.Push(a - b)
-			case Multiply:
-				s.Push(s.Pop() * s.Pop())
-			case Divide:
-				b, a := s.Pop(), s.Pop()
-				s.Push(a / b)
-			}
-		}
-	}
-	return int(s.Pop())
-}
-
-func toRpn(node *Node, result *[]any) {
-	if node.left == nil && node.right == nil {
-		*result = append(*result, node.value)
-	} else {
-		toRpn(node.left, result)
-		toRpn(node.right, result)
-		*result = append(*result, node.operator)
-	}
-}
-
-func smarterNaiveSearch(nodes NodeMap) int {
-	findLeft, findRight := findNode(nodes["root"].left, "humn"), findNode(nodes["root"].right, "humn")
-	fmt.Printf("findLeft: %v\n", findLeft)
-	fmt.Printf("findRight: %v\n", findRight)
-	if findLeft == nil {
-		leftNode := nodes["root"].left
-		leftValue := performOperation(leftNode)
-		newNode := &Node{name: leftNode.name, value: leftValue}
-		nodes[leftNode.name] = newNode
-		nodes["root"].left = newNode
-	} else {
-		rightNode := nodes["root"].right
-		rightValue := performOperation(rightNode)
-		newNode := &Node{name: rightNode.name, value: rightValue}
-		nodes[rightNode.name] = newNode
-		nodes["root"].right = newNode
-	}
-
-	return naiveSearch(nodes)
-}
-
-func naiveSearch(nodes NodeMap) int {
-	nodes["root"].operator = Subtract // should return zero
-	i := 0
-	for {
-		if i%1000000 == 0 {
-			fmt.Printf("i: %v\n", i)
-		}
-		nodes["humn"].value = i
-		if performOperation(nodes["root"]) == 0 {
-			break
-		}
-		i++
-	}
-	return i
-}
-
-func performOperation(node *Node) int {
+func resolveValue(node *Node) int {
 	switch node.operator {
 	case Add:
-		return performOperation(node.left) + performOperation(node.right)
+		return resolveValue(node.left) + resolveValue(node.right)
 	case Subtract:
-		return performOperation(node.left) - performOperation(node.right)
+		return resolveValue(node.left) - resolveValue(node.right)
 	case Multiply:
-		return performOperation(node.left) * performOperation(node.right)
+		return resolveValue(node.left) * resolveValue(node.right)
 	case Divide:
-		return performOperation(node.left) / performOperation(node.right)
+		return resolveValue(node.left) / resolveValue(node.right)
 	}
 	return node.value
 }
 
-func findNode(node *Node, name string) *Node {
-	if node.name == name {
-		return node
+func solveEquation(node *Node) *Node {
+	// fmt.Printf("solving: %v\n", node)
+	if node.left.variable {
+		return node // found it on the left
 	}
-	if node.left != nil {
-		if found := findNode(node.left, name); found != nil {
-			return found
+	if node.right.variable {
+		node.left, node.right = node.right, node.left
+		return node // found it, it was on the right
+	}
+	switch node.right.operator {
+	case None:
+		return nil // cannot be found with only value on the right side
+	case Add:
+		// y = a + b, try y - a = b and y - b = a
+		copy := node.Copy()
+		copy.left = &Node{left: copy.left, right: copy.right.left, operator: Subtract}
+		copy.right = copy.right.right
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
+		}
+		copy = node.Copy()
+		copy.left = &Node{left: copy.left, right: copy.right.right, operator: Subtract}
+		copy.right = copy.right.left
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
+		}
+	case Subtract:
+		// y = a - b, try y + b = a and  a - y = b
+		copy := node.Copy()
+		copy.left = &Node{left: copy.left, right: copy.right.right, operator: Add}
+		copy.right = copy.right.left
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
+		}
+		copy = node.Copy()
+		copy.left = &Node{left: copy.right.left, right: copy.left, operator: Subtract}
+		copy.right = copy.right.right
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
+		}
+	case Multiply:
+		// y = a * b, try y / a = b and y / b = a
+		copy := node.Copy()
+		copy.left = &Node{left: copy.left, right: copy.right.left, operator: Divide}
+		copy.right = copy.right.right
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
+		}
+		copy = node.Copy()
+		copy.left = &Node{left: copy.left, right: copy.right.right, operator: Divide}
+		copy.right = copy.right.left
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
+		}
+	case Divide:
+		// y = a / b, try y * b = a and a / y = b
+		copy := node.Copy()
+		copy.left = &Node{left: copy.left, right: copy.right.right, operator: Multiply}
+		copy.right = copy.right.left
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
+		}
+		copy = node.Copy()
+		copy.left = &Node{left: copy.right.left, right: copy.left, operator: Divide}
+		copy.right = copy.right.right
+		if copySolved := solveEquation(copy); copySolved != nil {
+			return copySolved
 		}
 	}
-	if node.right != nil {
-		return findNode(node.right, name)
+	return nil // not found this way
+}
+
+func (node *Node) Copy() *Node {
+	if node.operator == None {
+		return &Node{
+			name:     node.name,
+			operator: node.operator,
+			value:    node.value,
+			variable: node.variable,
+		}
 	}
-	return nil // not found
+	return &Node{
+		name:     node.name,
+		operator: node.operator,
+		left:     node.left.Copy(),
+		right:    node.right.Copy(),
+		value:    node.value,
+		variable: node.variable,
+	}
 }
 
 func parseInput(input []byte) NodeMap {
 	nodes := make(NodeMap)
 	for _, line := range strings.Split(string(input), "\n") {
 		parts := strings.Split(line, ": ")
-		// fmt.Printf("parts: %#v\n", parts)
 		name := parts[0]
 		value, err := strconv.Atoi(parts[1])
 		if err == nil {
 			if nodes[name] == nil {
-				nodes[name] = &Node{name: name, operator: None, value: value, resolved: true}
+				nodes[name] = &Node{name: name, operator: None, value: value}
 			} else {
 				nodes[name].value = value
-				nodes[name].resolved = true
 			}
 		} else {
 			formulaParts := strings.Split(parts[1], " ")
-			// fmt.Printf("formulaParts: %v\n", formulaParts)
 			operator := Add
 			switch formulaParts[1] {
 			case "+":
