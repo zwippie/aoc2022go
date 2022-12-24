@@ -41,7 +41,7 @@ type Player struct {
 
 // 149250
 func PartA(input []byte) any {
-	_, entry, instructions := parseInput(input)
+	_, entry, instructions := parseInput(input, connectNodesA)
 	player := Player{node: entry, facing: Right}
 	for _, instruction := range instructions {
 		player.PerformInstruction(instruction)
@@ -50,7 +50,12 @@ func PartA(input []byte) any {
 }
 
 func PartB(input []byte) any {
-	return 0
+	_, entry, instructions := parseInput(input, connectNodesB)
+	player := Player{node: entry, facing: Right}
+	for _, instruction := range instructions {
+		player.PerformInstruction(instruction)
+	}
+	return player.Score()
 }
 
 func (player *Player) PerformInstruction(instruction Instruction) {
@@ -97,9 +102,10 @@ func (player *Player) Score() int {
 	return (player.node.pos.row+1)*1000 + (player.node.pos.col+1)*4 + player.facing
 }
 
-func parseInput(input []byte) (maze Maze, entry *Node, instructions Instructions) {
+func parseInput(input []byte, connectFunction func(maze Maze) Maze) (maze Maze, entry *Node, instructions Instructions) {
 	parts := strings.Split(string(input), "\n\n")
 	maze, entry = parseMaze(parts[0])
+	maze = connectFunction(maze)
 	instructions = parseInstructions(parts[1])
 	return
 }
@@ -118,7 +124,6 @@ func parseMaze(input string) (maze Maze, entry *Node) {
 			}
 		}
 	}
-	maze = connectNodesA(maze)
 	return
 }
 
@@ -160,6 +165,34 @@ func connectNodesA(maze Maze) Maze {
 
 	return maze
 }
+
+func connectNodesB(maze Maze) Maze {
+	for pos, node := range maze {
+		if node.up == nil {
+			if n, ok := maze[Pos{pos.row - 1, pos.col}]; ok {
+				node.up = n
+				n.down = node
+			} else {
+				// wrapping time
+
+			}
+		}
+		if node.left == nil {
+			if n, ok := maze[Pos{pos.row, pos.col - 1}]; ok {
+				node.left = n
+				n.right = node
+			} else {
+				// wrapping time
+			}
+		}
+	}
+
+	return maze
+}
+
+// func wrapTransformMatrixUp(maze Maze) {
+
+// }
 
 func parseInstructions(input string) Instructions {
 	values := regexp.MustCompile(`(\d+|L|R)?`).FindAllString(input, -1)
