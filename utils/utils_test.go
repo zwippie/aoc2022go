@@ -7,6 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPow(t *testing.T) {
+	assert.Equal(t, 0, utils.Pow(5, -1))
+	assert.Equal(t, 1, utils.Pow(5, 0))
+	assert.Equal(t, 5, utils.Pow(5, 1))
+	assert.Equal(t, 25, utils.Pow(5, 2))
+	assert.Equal(t, 125, utils.Pow(5, 3))
+}
+
 func TestIn(t *testing.T) {
 	list := []int{1, 2, 3, 4, 5}
 	assert.True(t, utils.In(list, 3))

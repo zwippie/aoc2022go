@@ -17,6 +17,7 @@ import (
 	"aoc2022/day22"
 	"aoc2022/day23"
 	"aoc2022/day24"
+	"aoc2022/day25"
 	"aoc2022/day3"
 	"aoc2022/day4"
 	"aoc2022/day5"
@@ -77,6 +78,8 @@ var days = map[string]func([]byte) any{
 	"23b": day23.PartB,
 	"24a": day24.PartA,
 	"24b": day24.PartB,
+	"25a": day25.PartA,
+	"25b": day25.PartB,
 }
 
 func main() {

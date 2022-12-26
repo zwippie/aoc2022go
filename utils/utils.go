@@ -26,6 +26,21 @@ func Abs(num int) int {
 	return num
 }
 
+func Pow(a, b int) int {
+	result := 1
+	if b < 0 {
+		return 0
+	}
+	for {
+		if b == 0 {
+			break
+		}
+		result *= a
+		b--
+	}
+	return result
+}
+
 func MaxIn(s []int) int {
 	max := s[0]
 	for _, v := range s[1:] {
