@@ -15,6 +15,17 @@ func TestPow(t *testing.T) {
 	assert.Equal(t, 125, utils.Pow(5, 3))
 }
 
+func TestGCD(t *testing.T) {
+	assert.Equal(t, utils.GCD(10, 15), 5)
+	assert.Equal(t, utils.GCD(3, 7), 1)
+}
+
+func TestLCM(t *testing.T) {
+	assert.Equal(t, utils.LCM(4, 6), 12)
+	assert.Equal(t, utils.LCM(25, 120), 600)
+	assert.Equal(t, utils.LCM(3, 7), 21)
+}
+
 func TestIn(t *testing.T) {
 	list := []int{1, 2, 3, 4, 5}
 	assert.True(t, utils.In(list, 3))

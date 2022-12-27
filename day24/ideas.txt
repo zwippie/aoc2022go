@@ -1,0 +1,11 @@
+Theres a cycle of blizzard activity, in our input its 600 cycles, in the example its 12.
+Depth first search works on the example but is a bad fit for the real input.
+What now?
+
+Breadth first search? With a cyclic changing environment.
+Need something to label nodes as explored?
+
+For all 600 cycles, determine where player can come (start of cycle) and go (end of cycle).
+Find the shortest path from entry to exit with this info.
+(first cycle is tricky because moving from entry to maze can wait?)
+

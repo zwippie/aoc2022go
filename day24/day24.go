@@ -20,184 +20,164 @@ type Pos struct {
 	row, col int
 }
 
-type Node struct {
-	pos       Pos
-	blizzards Blizzards
-	wall      bool
-}
-
-type Cave map[Pos]*Node
-
 type Blizzard struct {
-	pos          Pos
-	direction    Direction
-	wrapToRowCol int
+	pos       Pos
+	direction Direction
 }
 
-type Blizzards []*Blizzard
+type Blizzards []*Blizzard // the blizzard input, used to build blizzardmaps
 
-var maxRow, maxCol int
+type BlizzardMap map[Pos]bool // does pos has one or more blizzards
+
+type BlizzardTimeMap []BlizzardMap // the blizzard map for every minute (it's repeating)
+
+var maxRow, maxCol, repeatingAt int
 var entry, exit Pos
+var btm BlizzardTimeMap
+var minMinutes int = math.MaxInt
 
+// 9223372036854775807 too high
 func PartA(input []byte) any {
-	cave, blizzards := parseInput(input)
-	fmt.Println(cave)
-
-	for minute := 0; minute < 18; minute++ {
-		blizzards = moveBlizzards(cave, blizzards)
-		cave = updateCave(cave, blizzards)
-		fmt.Println(cave)
-	}
-
-	return 0
+	btm = parseInput(input)
+	findPath(1, entry)
+	return minMinutes
 }
 
 func PartB(input []byte) any {
-	return 0
+	return math.MaxInt
 }
 
-func moveBlizzards(cave Cave, blizzards Blizzards) Blizzards {
-	for _, blizzard := range blizzards {
-		np := nextPos(blizzard.pos, blizzard.direction)
-		if cave[np].wall { // wrap around
-			switch blizzard.direction {
-			case North:
-				blizzard.pos = Pos{blizzard.wrapToRowCol, blizzard.pos.col}
-			case East:
-				blizzard.pos = Pos{blizzard.pos.row, blizzard.wrapToRowCol}
-			case South:
-				blizzard.pos = Pos{blizzard.wrapToRowCol, blizzard.pos.col}
-			case West:
-				blizzard.pos = Pos{blizzard.pos.row, blizzard.wrapToRowCol}
-			}
-		} else {
-			switch blizzard.direction {
-			case North:
-				blizzard.pos = Pos{blizzard.pos.row - 1, blizzard.pos.col}
-			case East:
-				blizzard.pos = Pos{blizzard.pos.row, blizzard.pos.col + 1}
-			case South:
-				blizzard.pos = Pos{blizzard.pos.row + 1, blizzard.pos.col}
-			case West:
-				blizzard.pos = Pos{blizzard.pos.row, blizzard.pos.col - 1}
-			}
+func findPath(minute int, player Pos) {
+	if minute >= minMinutes {
+		return
+	}
+	// if minute > 3*repeatingAt {
+	// 	return
+	// }
+	if player == exit {
+		minMinutes = utils.Min(minMinutes, minute-1)
+		fmt.Printf("minMinutes: %v\n", minMinutes)
+		return
+	}
+	blizzards := btm[minute%len(btm)]
+
+	for _, p := range adjacent(player) {
+		if !blizzards[p] {
+			// fmt.Println(blizzards.ToString(p), minute)
+			findPath(minute+1, p)
 		}
 	}
-	return blizzards
+	if player != entry && !blizzards[player] { // always try to wait
+		findPath(minute+1, player)
+	}
 }
 
-func updateCave(cave Cave, blizzards Blizzards) Cave {
-	for _, node := range cave {
-		node.blizzards = []*Blizzard{}
+func adjacent(pos Pos) []Pos {
+	result := []Pos{}
+	possible := []Pos{
+		{pos.row - 1, pos.col},
+		{pos.row, pos.col + 1},
+		{pos.row + 1, pos.col},
+		{pos.row, pos.col - 1},
 	}
+	for _, p := range possible {
+		if (p.row >= 0 && p.row <= maxRow && p.col >= 0 && p.col <= maxCol) || p == exit {
+			result = append(result, p)
+		}
+	}
+	return result
+}
+
+func blizzardsAtMinute(blizzards Blizzards, minute int) BlizzardMap {
+	result := make(BlizzardMap)
+	rowLen, colLen := maxRow+1, maxCol+1
 	for _, blizzard := range blizzards {
-		cave[blizzard.pos].blizzards = append(cave[blizzard.pos].blizzards, blizzard)
+		switch blizzard.direction {
+		case North:
+			row := ((blizzard.pos.row-minute)%rowLen + rowLen) % rowLen
+			result[Pos{row, blizzard.pos.col}] = true
+		case East:
+			col := (blizzard.pos.col + minute) % colLen
+			result[Pos{blizzard.pos.row, col}] = true
+		case South:
+			row := (blizzard.pos.row + minute) % rowLen
+			result[Pos{row, blizzard.pos.col}] = true
+		case West:
+			col := ((blizzard.pos.col-minute)%colLen + colLen) % colLen
+			result[Pos{blizzard.pos.row, col}] = true
+		}
 	}
-	return cave
+	return result
 }
 
-func nextPos(pos Pos, direction Direction) Pos {
-	switch direction {
-	case North:
-		return Pos{pos.row - 1, pos.col}
-	case East:
-		return Pos{pos.row, pos.col + 1}
-	case South:
-		return Pos{pos.row + 1, pos.col}
-	case West:
-		return Pos{pos.row, pos.col - 1}
-	}
-	return Pos{} // unreachable
-}
-
-func (cave Cave) String() string {
+func (bm BlizzardMap) String() string {
 	result := ""
 	for row := 0; row <= maxRow; row++ {
 		for col := 0; col <= maxCol; col++ {
-			result += cave[Pos{row, col}].String()
+			if bm[Pos{row, col}] {
+				result += "X"
+			} else {
+				result += "."
+			}
 		}
 		result += "\n"
 	}
 	return result
 }
 
-func (node *Node) String() string {
-	if node.pos == entry {
-		return "e"
-	} else if node.pos == exit {
-		return "x"
-	} else if node.wall {
-		return "#"
-	} else if len(node.blizzards) > 1 {
-		return fmt.Sprint(len(node.blizzards))
-	} else if len(node.blizzards) == 1 {
-		return node.blizzards[0].direction.String()
-	} else {
-		return "."
+func (bm BlizzardMap) ToString(player Pos) string {
+	result := ""
+	for row := 0; row <= maxRow; row++ {
+		for col := 0; col <= maxCol; col++ {
+			if row == player.row && col == player.col {
+				result += "O"
+			} else if bm[Pos{row, col}] {
+				result += "X"
+			} else {
+				result += "."
+			}
+		}
+		result += "\n"
 	}
+	return result
 }
 
 func (d Direction) String() string {
-	switch d {
-	case North:
-		return "^"
-	case East:
-		return ">"
-	case South:
-		return "v"
-	case West:
-		return "<"
-	}
-	return "?"
+	return string("^>v<"[d])
 }
 
-func parseInput(input []byte) (Cave, Blizzards) {
-	cave := make(Cave)
+func parseInput(input []byte) BlizzardTimeMap {
 	blizzards := Blizzards{}
 	maxRow, maxCol = math.MinInt, math.MinInt
 	for row, line := range strings.Split(string(input), "\n") {
 		maxRow = utils.Max(maxRow, row)
 		for col, value := range strings.Split(line, "") {
 			maxCol = utils.Max(maxCol, col)
-			node := &Node{pos: Pos{row, col}}
-			if value == "#" {
-				node.wall = true
-			} else if value == "^" {
-				blizzard := &Blizzard{pos: Pos{row, col}, direction: North}
+			if value == "^" {
+				blizzard := &Blizzard{pos: Pos{row - 1, col - 1}, direction: North}
 				blizzards = append(blizzards, blizzard)
-				node.blizzards = append(node.blizzards, blizzard)
 			} else if value == ">" {
-				blizzard := &Blizzard{pos: Pos{row, col}, direction: East}
+				blizzard := &Blizzard{pos: Pos{row - 1, col - 1}, direction: East}
 				blizzards = append(blizzards, blizzard)
-				node.blizzards = append(node.blizzards, blizzard)
 			} else if value == "v" {
-				blizzard := &Blizzard{pos: Pos{row, col}, direction: South}
+				blizzard := &Blizzard{pos: Pos{row - 1, col - 1}, direction: South}
 				blizzards = append(blizzards, blizzard)
-				node.blizzards = append(node.blizzards, blizzard)
 			} else if value == "<" {
-				blizzard := &Blizzard{pos: Pos{row, col}, direction: West}
+				blizzard := &Blizzard{pos: Pos{row - 1, col - 1}, direction: West}
 				blizzards = append(blizzards, blizzard)
-				node.blizzards = append(node.blizzards, blizzard)
 			}
-			cave[node.pos] = node
 		}
 	}
 
-	for _, blizzard := range blizzards {
-		switch blizzard.direction {
-		case North:
-			blizzard.wrapToRowCol = maxRow - 1
-		case East:
-			blizzard.wrapToRowCol = 1
-		case South:
-			blizzard.wrapToRowCol = 1
-		case West:
-			blizzard.wrapToRowCol = maxCol - 1
-		}
+	maxRow -= 2
+	maxCol -= 2
+	entry = Pos{-1, 0}
+	exit = Pos{maxRow + 1, maxCol}
+
+	repeatingAt = utils.LCM(maxRow+1, maxCol+1)
+	btm := make(BlizzardTimeMap, repeatingAt)
+	for minute := 0; minute < repeatingAt; minute++ {
+		btm[minute] = blizzardsAtMinute(blizzards, minute)
 	}
-
-	entry = Pos{0, 1}
-	exit = Pos{maxRow, maxCol - 1}
-
-	return cave, blizzards
+	return btm
 }

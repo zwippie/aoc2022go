@@ -41,6 +41,21 @@ func Pow(a, b int) int {
 	return result
 }
 
+// Greatest Common Divisor
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// Least Common Multiple
+func LCM(a, b int) int {
+	return a * b / GCD(a, b)
+}
+
 func MaxIn(s []int) int {
 	max := s[0]
 	for _, v := range s[1:] {
