@@ -1,10 +1,13 @@
 package day16
 
 import (
+	"aoc2022/dijkstra"
 	"aoc2022/utils"
 	"fmt"
+	"math"
 	"regexp"
 	"strings"
+	"sync"
 
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -18,18 +21,6 @@ type Valve struct {
 
 type Valves map[string]Valve
 
-// type Node struct {
-// 	name     string
-// 	flowRate int
-// 	links    []Link
-// }
-
-// type Link struct {
-// 	from   *Node
-// 	to     *Node
-// 	weight int
-// }
-
 type Player struct {
 	current  string
 	opened   map[string]bool
@@ -39,24 +30,35 @@ type Player struct {
 	released int
 }
 
+type MaxReleased struct {
+	value int
+	mutex sync.RWMutex
+}
+
+var maxReleased *MaxReleased
+
+func updateMaxReleased(mr *MaxReleased, value int) {
+	mr.mutex.RLock()
+	defer mr.mutex.RUnlock()
+	mr.value = utils.Max(mr.value, value)
+}
+
+// 1751
 func PartA(input []byte) any {
 	valves := parseInput(input)
 	fmt.Printf("valves: %v\n", len(valves))
-	player := newPlayer(valves)
-	player.current = "AA"
-	player.minutes = 1
-	// valves = releaseMaxPressure(valves, player)
-	done := false
-	for {
-		if valves, done = simplify(valves); done {
-			break
-		}
-	}
+	valves = simplifyValves(valves)
 	fmt.Printf("valves: %v\n", len(valves))
 
-	player = traverse(valves, player)
+	player := newPlayer(valves)
+	maxReleased = &MaxReleased{value: math.MinInt}
 
-	return player
+	graph := buildGraph(valves)
+	fmt.Printf("graph: \n%v\n", graph)
+
+	traverse(valves, player)
+
+	return maxReleased.value
 }
 
 func PartB(input []byte) any {
@@ -66,40 +68,65 @@ func PartB(input []byte) any {
 	return bla
 }
 
-func traverse(valves Valves, player Player) Player {
-	if player.minutes >= 30 {
-		fmt.Println("time's up")
-		return player
-	}
-	if allValvesOpen(valves, player) {
-		fmt.Println("all valves open")
-		return player
-	}
+// Depth First Search while keeping track of global max released. Not fast.
+func traverse(valves Valves, player *Player) {
 	current := valves[player.current]
 	player.visited[player.current] = true
 	player.released += player.flow
-	fmt.Printf("player now here: %v\n", player)
+
+	if player.minutes >= 30 {
+		// time's up
+		if player.minutes == 30 {
+			updateMaxReleased(maxReleased, player.released)
+		}
+		return
+	}
+
+	player.minutes += 1
+
+	if allValvesOpen(valves, player) {
+		// just wait
+		traverse(valves, player)
+		return
+	}
 
 	if canOpen(current, player) {
-		fmt.Println("open valve", player.current)
+		// open valve
 		player.opened[player.current] = true
 		player.flow += current.flowRate
-		player.minutes += 1
+		traverse(valves, player)
+	} else {
+		// try any next non-opened valve
+		graph := buildGraph(valves)
+		dijkstra.Dijkstra(graph, player.current)
+		for _, valve := range valves {
+			if valve.name != player.current && canOpen(valve, player) {
+				// fly to valve
+				minutes := graph.GetNode(valve.name).Value - 1 // already added 1
+				playerCopy := copyPlayer(player)
+				playerCopy.current = valve.name
+				playerCopy.minutes += minutes
+				playerCopy.released += (minutes * playerCopy.flow)
+				traverse(valves, playerCopy)
+			}
+		}
 	}
-	moveTo := bestTunnel(valves, player)
-	fmt.Println("moveTo", moveTo, "takes", current.tunnels[moveTo])
-	if moveTo != "" {
-		// player.current = moveTo
-		// player.minutes += current.tunnels[moveTo]
-		player = movePlayerTo(valves, player, moveTo)
-		return traverse(valves, player)
+}
+
+// repeatedly remove inactive valves
+func simplifyValves(valves Valves) Valves {
+	done := false
+	for {
+		if valves, done = simplify(valves); done {
+			break
+		}
 	}
-	return player
+	return valves
 }
 
 // remove inactive valves that only connect two other valves
 func simplify(valves Valves) (result Valves, done bool) {
-	fmt.Printf("valves: %v\n", valves)
+	// fmt.Printf("valves: %v\n", valves)
 	result = valves
 	for _, valve := range valves {
 		if valve.name != "AA" && valve.flowRate == 0 && len(valve.tunnels) == 2 {
@@ -117,44 +144,49 @@ func simplify(valves Valves) (result Valves, done bool) {
 	return valves, true
 }
 
-func newPlayer(valves Valves) Player {
-	return Player{opened: make(map[string]bool), visited: make(map[string]bool)}
-}
-
-func movePlayerTo(valves Valves, player Player, moveTo string) Player {
-	time := valves[player.current].tunnels[moveTo]
-	player.released += time * player.flow
-	player.minutes += time
-	player.current = moveTo
+func newPlayer(valves Valves) *Player {
+	player := &Player{
+		current: "AA",
+		minutes: 1,
+		opened:  make(map[string]bool),
+		visited: make(map[string]bool),
+	}
+	player.opened["AA"] = true // hack to make allValvesOpen simpler as AA is the only 0-valve
 	return player
 }
 
-func canOpen(valve Valve, player Player) bool {
+func copyPlayer(player *Player) *Player {
+	return &Player{
+		current:  player.current,
+		opened:   utils.CopyMap(player.opened),
+		visited:  utils.CopyMap(player.visited),
+		minutes:  player.minutes,
+		flow:     player.flow,
+		released: player.released,
+	}
+}
+
+func canOpen(valve Valve, player *Player) bool {
 	return valve.flowRate > 0 && !player.opened[valve.name]
 }
 
-func bestTunnel(valves Valves, player Player) string {
-	current := valves[player.current]
-	maxFlow := 0
-	maxTo := ""
-	for to, time := range current.tunnels {
-		if player.opened[to] && len(valves[to].tunnels) == 1 {
-			continue // dead end already visited
-		}
-		flow := time * player.flow
-		if !player.opened[to] {
-			flow += valves[to].flowRate
-		}
-		if flow > maxFlow {
-			maxFlow = flow
-			maxTo = to
-		}
-	}
-	return maxTo
+func allValvesOpen(valves Valves, player *Player) bool {
+	return len(valves) == len(player.opened)
 }
 
-func allValvesOpen(valves Valves, player Player) bool {
-	return len(valves) == len(player.opened)
+func buildGraph(valves Valves) *dijkstra.WeightedGraph {
+	graph := dijkstra.NewGraph()
+	for _, valve := range valves {
+		graph.AddNode(&dijkstra.Node{Name: valve.name, Value: math.MaxInt, Through: nil})
+	}
+	for _, valve := range valves {
+		from := graph.GetNode(valve.name)
+		for toName, distance := range valve.tunnels {
+			to := graph.GetNode(toName)
+			graph.AddEdge(from, to, distance)
+		}
+	}
+	return graph
 }
 
 func parseInput(input []byte) Valves {
