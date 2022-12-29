@@ -56,7 +56,7 @@ func PartA(input []byte) any {
 	graph := buildGraph(valves)
 	fmt.Printf("graph: \n%v\n", graph)
 
-	traverse(valves, player)
+	traverse(valves, player, precalculateDistances(valves))
 
 	return maxReleased.value
 }
@@ -69,7 +69,7 @@ func PartB(input []byte) any {
 }
 
 // Depth First Search while keeping track of global max released. Not fast.
-func traverse(valves Valves, player *Player) {
+func traverse(valves Valves, player *Player, distances map[string]map[string]int) {
 	current := valves[player.current]
 	player.visited[player.current] = true
 	player.released += player.flow
@@ -86,7 +86,7 @@ func traverse(valves Valves, player *Player) {
 
 	if allValvesOpen(valves, player) {
 		// just wait
-		traverse(valves, player)
+		traverse(valves, player, distances)
 		return
 	}
 
@@ -94,23 +94,34 @@ func traverse(valves Valves, player *Player) {
 		// open valve
 		player.opened[player.current] = true
 		player.flow += current.flowRate
-		traverse(valves, player)
+		traverse(valves, player, distances)
 	} else {
 		// try any next non-opened valve
-		graph := buildGraph(valves)
-		dijkstra.Dijkstra(graph, player.current)
 		for _, valve := range valves {
 			if valve.name != player.current && canOpen(valve, player) {
 				// fly to valve
-				minutes := graph.GetNode(valve.name).Value - 1 // already added 1
+				minutes := distances[player.current][valve.name] - 1 // already added 1
 				playerCopy := copyPlayer(player)
 				playerCopy.current = valve.name
 				playerCopy.minutes += minutes
 				playerCopy.released += (minutes * playerCopy.flow)
-				traverse(valves, playerCopy)
+				traverse(valves, playerCopy, distances)
 			}
 		}
 	}
+}
+
+func precalculateDistances(valves Valves) map[string]map[string]int {
+	result := make(map[string]map[string]int)
+	for _, valve := range valves {
+		graph := buildGraph(valves)
+		dijkstra.Dijkstra(graph, valve.name)
+		result[valve.name] = make(map[string]int)
+		for _, valveB := range valves {
+			result[valve.name][valveB.name] = graph.GetNode(valveB.name).Value
+		}
+	}
+	return result
 }
 
 // repeatedly remove inactive valves
