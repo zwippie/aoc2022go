@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 type Valve struct {
@@ -22,7 +21,8 @@ type Valve struct {
 type Valves map[string]Valve
 
 type Player struct {
-	current  string
+	human    string
+	elephant string
 	opened   map[string]bool
 	visited  map[string]bool
 	minutes  int
@@ -62,16 +62,71 @@ func PartA(input []byte) any {
 }
 
 func PartB(input []byte) any {
-	bla := []int{1, 2, 3, 4}
-	fmt.Printf("bla: %v\n", bla)
-	bla = slices.Delete(bla, 1, 2)
-	return bla
+	valves := parseInput(input)
+	fmt.Printf("valves: %v\n", len(valves))
+	valves = simplifyValves(valves)
+	fmt.Printf("valves: %v\n", len(valves))
+
+	// player := newPlayer(valves)
+	maxReleased = &MaxReleased{value: math.MinInt}
+
+	graph := buildGraph(valves)
+	fmt.Printf("graph: \n%v\n", graph)
+
+	// traverseWithElephant(valves, player, precalculateDistances(valves))
+
+	return maxReleased.value
 }
+
+// func traverseWithElephant(valves Valves, player *Player, distances map[string]map[string]int) {
+// 	humanValve := valves[player.human]
+// 	elephantValve := valves[player.elephant]
+
+// 	player.visited[player.human] = true
+// 	player.visited[player.elephant] = true
+// 	player.released += player.flow
+
+// 	if player.minutes >= 24 {
+// 		// time's up
+// 		if player.minutes == 24 {
+// 			updateMaxReleased(maxReleased, player.released)
+// 		}
+// 		return
+// 	}
+
+// 	player.minutes += 1
+
+// 	if allValvesOpen(valves, player) {
+// 		// just wait
+// 		traverseWithElephant(valves, player, distances)
+// 		return
+// 	}
+
+// 	if canOpen(current, player) {
+// 		// open valve
+// 		player.opened[player.human] = true
+// 		player.flow += current.flowRate
+// 		traverse(valves, player, distances)
+// 	} else {
+// 		// try any next non-opened valve
+// 		for _, valve := range valves {
+// 			if valve.name != player.human && canOpen(valve, player) {
+// 				// fly to valve
+// 				minutes := distances[player.human][valve.name] - 1 // already added 1
+// 				playerCopy := copyPlayer(player)
+// 				playerCopy.human = valve.name
+// 				playerCopy.minutes += minutes
+// 				playerCopy.released += (minutes * playerCopy.flow)
+// 				traverse(valves, playerCopy, distances)
+// 			}
+// 		}
+// 	}
+// }
 
 // Depth First Search while keeping track of global max released. Not fast.
 func traverse(valves Valves, player *Player, distances map[string]map[string]int) {
-	current := valves[player.current]
-	player.visited[player.current] = true
+	current := valves[player.human]
+	player.visited[player.human] = true
 	player.released += player.flow
 
 	if player.minutes >= 30 {
@@ -92,17 +147,17 @@ func traverse(valves Valves, player *Player, distances map[string]map[string]int
 
 	if canOpen(current, player) {
 		// open valve
-		player.opened[player.current] = true
+		player.opened[player.human] = true
 		player.flow += current.flowRate
 		traverse(valves, player, distances)
 	} else {
 		// try any next non-opened valve
 		for _, valve := range valves {
-			if valve.name != player.current && canOpen(valve, player) {
+			if valve.name != player.human && canOpen(valve, player) {
 				// fly to valve
-				minutes := distances[player.current][valve.name] - 1 // already added 1
+				minutes := distances[player.human][valve.name] - 1 // already added 1
 				playerCopy := copyPlayer(player)
-				playerCopy.current = valve.name
+				playerCopy.human = valve.name
 				playerCopy.minutes += minutes
 				playerCopy.released += (minutes * playerCopy.flow)
 				traverse(valves, playerCopy, distances)
@@ -157,7 +212,7 @@ func simplify(valves Valves) (result Valves, done bool) {
 
 func newPlayer(valves Valves) *Player {
 	player := &Player{
-		current: "AA",
+		human:   "AA",
 		minutes: 1,
 		opened:  make(map[string]bool),
 		visited: make(map[string]bool),
@@ -168,7 +223,7 @@ func newPlayer(valves Valves) *Player {
 
 func copyPlayer(player *Player) *Player {
 	return &Player{
-		current:  player.current,
+		human:    player.human,
 		opened:   utils.CopyMap(player.opened),
 		visited:  utils.CopyMap(player.visited),
 		minutes:  player.minutes,
